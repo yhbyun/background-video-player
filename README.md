@@ -1,29 +1,22 @@
-# chameleon
+# background-video-player
+
+Electron app to play videos in the background
 
 ## Project setup
 ```
 yarn install
 ```
 
-### Compiles and hot-reloads for development
+## To start a Development Server
 ```
-yarn run serve
-```
-
-### Compiles and minifies for production
-```
-yarn run build
+yarn electron:serve
 ```
 
-### Run your tests
+### To Build Your App
 ```
-yarn run test
-```
-
-### Lints and fixes files
-```
-yarn run lint
+yarn electron:build
 ```
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+### todo lists
+
+- [ ] mkv file format
