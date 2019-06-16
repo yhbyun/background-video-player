@@ -112,6 +112,7 @@ function createTray() {
     tray.setToolTip('Video')
 
     let contextMenu = Menu.buildFromTemplate([
+        { label: 'Open File', click() { win.webContents.send('openFile') } },
         { label: 'Play', click() { play() } },
         { label: 'Pause', click() { pause() } },
         { type: 'separator' },
