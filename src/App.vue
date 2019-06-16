@@ -54,4 +54,18 @@ export default {
 </script>
 
 <style>
+body {
+    margin: 0;
+}
+
+.plyr {
+    width: 100vw;
+    height: 100vh;
+}
+
+.plyr video {
+    width: 100vw;
+    height: 100vh;
+}
+
 </style>
