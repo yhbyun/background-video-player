@@ -5,6 +5,7 @@ import {
     createProtocol,
     installVueDevtools
 } from "vue-cli-plugin-electron-builder/lib";
+import installExtension, { VUEJS3_DEVTOOLS } from 'electron-devtools-installer';
 import { config } from './config.js';
 
 const isDevelopment = process.env.NODE_ENV !== "production";
@@ -26,7 +27,14 @@ function createWindow() {
         transparent: true,
         frame: false,
         webPreferences: {
-            nodeIntegration: true
+             // Use pluginOptions.nodeIntegration, leave this alone
+            // See nklayman.github.io/vue-cli-plugin-electron-builder/guide/security.html#node-integration for more info
+            // nodeIntegration: process.env.ELECTRON_NODE_INTEGRATION,
+            // contextIsolation: !process.env.ELECTRON_NODE_INTEGRATION
+            nodeIntegration: true,
+            contextIsolation: false,
+            enableRemoteModule: true,
+            webSecurity: false,
         }
     });
 
@@ -62,9 +70,7 @@ app.on("window-all-closed", () => {
 app.on("activate", () => {
     // On macOS it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
-    if (win === null) {
-        createWindow();
-    }
+    if (BrowserWindow.getAllWindows().length === 0) createWindow()
 });
 
 // This method will be called when Electron has finished
@@ -74,9 +80,9 @@ app.on("ready", async () => {
     if (isDevelopment && !process.env.IS_TEST) {
         // Install Vue Devtools
         try {
-            await installVueDevtools();
+            await installExtension(VUEJS3_DEVTOOLS)
         } catch (e) {
-            console.error("Vue Devtools failed to install:", e.toString());
+            console.error('Vue Devtools failed to install:', e.toString())
         }
     }
 

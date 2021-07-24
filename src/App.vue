@@ -11,7 +11,6 @@
 
 <script>
 import { ipcRenderer, remote } from 'electron'
-import fs from 'fs'
 
 export default {
     name: 'app',
@@ -33,21 +32,23 @@ export default {
     },
     methods: {
         openFile() {
-            let file = remote.dialog.showOpenDialog({ properties: ['openFile'] });
-            if (file && file.length === 1) {
-                const source = fs.readFileSync(file[0])
+            remote.dialog.showOpenDialog({ properties: ['openFile'] })
+                .then(result => {
+                    if (result.filePaths && result.filePaths.length === 1) {
+                        // console.log('file', result.filePaths[0]);
+                        this.player.source = {
+                            type: 'video',
+                            sources: [
+                                {
+                                    src: 'file://' + result.filePaths[0],
+                                },
+                            ],
+                        };
 
-                this.player.source = {
-                    type: 'video',
-                    sources: [
-                        {
-                            src: URL.createObjectURL(new Blob([source], { type: 'video/mp4' }))
-                        },
-                    ],
-                };
-
-                this.player.play();
-            }
+                        this.player.play();
+                    }
+                })
+                .catch(err => console.log('Handle Error',err));
         },
     },
 }
