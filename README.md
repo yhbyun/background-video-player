@@ -43,8 +43,8 @@ yarn electron:build
 
 ## todo lists
 
-- [ ] Enable play control on stream mode
 - [ ] mkv file format
+- [ ] Subtitle supports
 
 ## References
 

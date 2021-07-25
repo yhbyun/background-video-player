@@ -1,6 +1,6 @@
 "use strict";
 
-import { app, protocol, BrowserWindow, Menu, Tray, nativeImage, dialog } from "electron";
+import { app, protocol, BrowserWindow, Menu, Tray, nativeImage, dialog, ipcMain } from "electron";
 import {
     createProtocol,
     installVueDevtools
@@ -18,6 +18,7 @@ let win;
 let tray;
 let settings;
 let httpServer;
+let isRendererReady = false;
 
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([
@@ -100,6 +101,16 @@ app.on("ready", async () => {
     createWindow();
 });
 
+ipcMain.once("ipcRendererReady", (event, args) => {
+    console.log("ipcRendererReady")
+    isRendererReady = true;
+});
+
+ipcMain.on('fileDrop', (event, arg) => {
+    console.log("fileDrop:", arg);
+    onVideoFileSeleted(arg);
+});
+
 // Exit cleanly on request from parent process in development mode.
 if (isDevelopment) {
     if (process.platform === "win32") {
@@ -124,9 +135,17 @@ function onVideoFileSeleted(videoFilePath) {
             let playParams = {};
             playParams.type = "native";
             playParams.videoSource = videoFilePath;
-            console.log("fileSelected=", playParams)
+            if (isRendererReady) {
+                console.log("fileSelected=", playParams)
 
-            win.webContents.send('fileSelected', playParams);
+                win.webContents.send('fileSelected', playParams);
+            } else {
+                ipcMain.once("ipcRendererReady", (event, args) => {
+                    console.log("fileSelected", playParams)
+                    win.webContents.send('fileSelected', playParams);
+                    isRendererReady = true;
+                })
+            }
         } else {
             if (!httpServer) {
                 httpServer = new VideoServer();
@@ -138,9 +157,17 @@ function onVideoFileSeleted(videoFilePath) {
             playParams.type = "stream";
             playParams.videoSource = "http://127.0.0.1:8888?startTime=0";
             playParams.duration = checkResult.duration
-            console.log("fileSelected=", playParams)
+            if (isRendererReady) {
+                console.log("fileSelected=", playParams)
 
-            win.webContents.send('fileSelected', playParams);
+                win.webContents.send('fileSelected', playParams);
+            } else {
+                ipcMain.once("ipcRendererReady", (event, args) => {
+                    console.log("fileSelected", playParams)
+                    win.webContents.send('fileSelected', playParams);
+                    isRendererReady = true;
+                })
+            }
         }
     }).catch((err) => {
         console.log("video format error", err);
