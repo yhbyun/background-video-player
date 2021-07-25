@@ -13,7 +13,9 @@
   },
   "main": "background.js",
   "dependencies": {
+    "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "core-js": "^3.6.5",
+    "fluent-ffmpeg": "^2.1.2",
     "jsonfile": "^6.1.0",
     "vue": "^2.6.14",
     "vue-plyr": "^7.0.0"

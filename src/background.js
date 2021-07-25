@@ -1,12 +1,14 @@
 "use strict";
 
-import { app, protocol, BrowserWindow, Menu, Tray, nativeImage } from "electron";
+import { app, protocol, BrowserWindow, Menu, Tray, nativeImage, dialog } from "electron";
 import {
     createProtocol,
     installVueDevtools
 } from "vue-cli-plugin-electron-builder/lib";
 import installExtension, { VUEJS3_DEVTOOLS } from 'electron-devtools-installer';
 import { config } from './config.js';
+import { videoSupport } from './ffmpeg-helper';
+import VideoServer from './VideoServer';
 
 const isDevelopment = process.env.NODE_ENV !== "production";
 
@@ -15,6 +17,7 @@ const isDevelopment = process.env.NODE_ENV !== "production";
 let win;
 let tray;
 let settings;
+let httpServer;
 
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([
@@ -112,13 +115,54 @@ if (isDevelopment) {
     }
 }
 
+function onVideoFileSeleted(videoFilePath) {
+    videoSupport(videoFilePath).then((checkResult) => {
+        if (checkResult.videoCodecSupport && checkResult.audioCodecSupport) {
+            if (httpServer) {
+                httpServer.killFfmpegCommand();
+            }
+            let playParams = {};
+            playParams.type = "native";
+            playParams.videoSource = videoFilePath;
+            console.log("fileSelected=", playParams)
+
+            win.webContents.send('fileSelected', playParams);
+        } else {
+            if (!httpServer) {
+                httpServer = new VideoServer();
+            }
+            httpServer.videoSourceInfo = { videoSourcePath: videoFilePath, checkResult: checkResult };
+            httpServer.createServer();
+            console.log("createVideoServer success");
+            let playParams = {};
+            playParams.type = "stream";
+            playParams.videoSource = "http://127.0.0.1:8888?startTime=0";
+            playParams.duration = checkResult.duration
+            console.log("fileSelected=", playParams)
+
+            win.webContents.send('fileSelected', playParams);
+        }
+    }).catch((err) => {
+        console.log("video format error", err);
+        const options = {
+            type: 'info',
+            title: 'Error',
+            message: "It is not a video file!",
+            buttons: ['OK']
+        }
+        dialog.showMessageBox(options, function (index) {
+            console.log("showMessageBox", index);
+        })
+    })
+}
+
 function createTray() {
     tray = new Tray(nativeImage.createEmpty())
     tray.setTitle('Video')
     tray.setToolTip('Video')
 
     let contextMenu = Menu.buildFromTemplate([
-        { label: 'Open File', click() { win.focus(); win.webContents.send('openFile') } },
+        { label: 'Open File', click() { openFile() } },
         { label: 'Play', click() { play() } },
         { label: 'Pause', click() { pause() } },
         { type: 'separator' },
@@ -169,6 +213,23 @@ function createTray() {
     ])
 
     tray.setContextMenu(contextMenu)
+}
+
+function openFile() {
+    win.focus();
+
+    dialog.showOpenDialog({
+        properties: ['openFile'],
+        // filters: [
+        //     {name: 'Movies', extensions: ['mkv', 'avi', 'mp4', 'rmvb', 'flv', 'ogv','webm', '3gp', 'mov']},
+        // ]
+    }).then((result) => {
+        let canceled = result.canceled;
+        let filePaths = result.filePaths;
+        if (!canceled && win && filePaths.length > 0) {
+            onVideoFileSeleted(filePaths[0])
+        }
+    });
 }
 
 function play() {

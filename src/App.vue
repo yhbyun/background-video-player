@@ -10,7 +10,7 @@
 </template>
 
 <script>
-import { ipcRenderer, remote } from 'electron'
+import { ipcRenderer } from 'electron'
 
 export default {
     name: 'app',
@@ -26,30 +26,21 @@ export default {
             }
         })
 
-        ipcRenderer.on('openFile', () => {
-            this.openFile();
+        ipcRenderer.on('fileSelected', (event, message) => {
+            console.log('fileSelected:', message)
+            this.player.source = {
+                type: 'video',
+                sources: [{
+                    src: message.videoSource,
+                    type: 'video/mp4',
+                }],
+                poster: '',
+                previewThumbnails: [],
+                tracks: [],
+            };
+            this.player.config.duration = message.duration;
+            this.player.play();
         });
-    },
-    methods: {
-        openFile() {
-            remote.dialog.showOpenDialog({ properties: ['openFile'] })
-                .then(result => {
-                    if (result.filePaths && result.filePaths.length === 1) {
-                        // console.log('file', result.filePaths[0]);
-                        this.player.source = {
-                            type: 'video',
-                            sources: [
-                                {
-                                    src: 'file://' + result.filePaths[0],
-                                },
-                            ],
-                        };
-
-                        this.player.play();
-                    }
-                })
-                .catch(err => console.log('Handle Error',err));
-        },
     },
 }
 </script>
