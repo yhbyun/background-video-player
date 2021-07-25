@@ -35,6 +35,11 @@ function createVideoHtml(source, poster) {
     return videoHtml;
 }
 
+function disableMouseClick(player) {
+    // https://github.com/videojs/video.js/issues/2444
+    player.el_.firstChild.style.pointerEvents = 'none';
+}
+
 export default {
     name: 'app',
     mounted () {
@@ -62,6 +67,7 @@ export default {
         let vid = document.getElementById("my-video");
 
         let player = videojs(vid);
+        disableMouseClick(player);
 
         document.onkeydown = (event) => {
             console.log("onkeypress", event);
@@ -94,12 +100,14 @@ export default {
             vid = document.getElementById('my-video');
             if (message.type === 'native') {
                 player = videojs(vid);
+                disableMouseClick(player);
                 player.play();
             } else if (message.type === 'stream') {
                 player = videojs(vid, {
                     techOrder: ['StreamPlay'],
                     StreamPlay: { duration: message.duration }
                 }, () => {
+                    disableMouseClick(player);
                     player.play()
                 });
             }
