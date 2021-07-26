@@ -4129,6 +4129,13 @@ dns-txt@^2.0.2:
   dependencies:
     buffer-indexof "^1.0.0"
 
+doc-ready@^1.0.4:
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/doc-ready/-/doc-ready-1.0.4.tgz#37f5391969cff994303fdfef2e5d50357f8164d3"
+  integrity sha1-N/U5GWnP+ZQwP9/vLl1QNX+BZNM=
+  dependencies:
+    eventie "^1"
+
 doctrine@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/doctrine/-/doctrine-3.0.0.tgz#addebead72a6574db783639dc87a121773973961"
@@ -4305,6 +4312,13 @@ electron-devtools-installer@^3.2.0:
     semver "^7.2.1"
     tslib "^2.1.0"
     unzip-crx-3 "^0.2.0"
+
+electron-prompt@^1.6.2:
+  version "1.6.2"
+  resolved "https://registry.yarnpkg.com/electron-prompt/-/electron-prompt-1.6.2.tgz#e26bd3d359120bd45ce2f9625bdc380deb7ee269"
+  integrity sha512-gC9ZpMopIgz1kW92J7UfsXarkLdPH2zhr77bnJFlDSduYjRlr9nEPm4ux1vyzJsO72AdOyvuPPIQB0j+gWsncQ==
+  dependencies:
+    doc-ready "^1.0.4"
 
 electron-publish@22.11.7:
   version "22.11.7"
@@ -4662,6 +4676,11 @@ eventemitter3@^4.0.0:
   version "4.0.7"
   resolved "https://registry.yarnpkg.com/eventemitter3/-/eventemitter3-4.0.7.tgz#2de9b68f6528d5644ef5c59526a1b4a07306169f"
   integrity sha512-8guHBZCwKnFhYdHr2ysuRWErTwhoN2X8XELRlrRwpmfeY2jjuUN4taQMsULKUVo1K4DvZl+0pgfyoysHxvmvEw==
+
+eventie@^1:
+  version "1.0.6"
+  resolved "https://registry.yarnpkg.com/eventie/-/eventie-1.0.6.tgz#d4ffc8b0c2b5e493c2aa1b22cbe918d3aee74437"
+  integrity sha1-1P/IsMK15JPCqhsiy+kY067nRDc=
 
 events@^3.0.0:
   version "3.0.0"
