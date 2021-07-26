@@ -9,6 +9,7 @@ import installExtension, { VUEJS3_DEVTOOLS } from 'electron-devtools-installer';
 import { config } from './config.js';
 import { videoSupport } from './ffmpeg-helper';
 import VideoServer from './VideoServer';
+import prompt from 'electron-prompt';
 
 const isDevelopment = process.env.NODE_ENV !== "production";
 
@@ -190,6 +191,7 @@ function createTray() {
 
     let contextMenu = Menu.buildFromTemplate([
         { label: 'Open File', click() { openFile() } },
+        { label: 'Load URL', click() { loadUrl() } },
         { label: 'Play', click() { play() } },
         { label: 'Pause', click() { pause() } },
         { type: 'separator' },
@@ -257,6 +259,27 @@ function openFile() {
             onVideoFileSeleted(filePaths[0])
         }
     });
+}
+
+function loadUrl() {
+    prompt({
+        title: 'Video URL',
+        label: 'URL:',
+        value: 'https://example.org',
+        inputAttrs: {
+            type: 'url'
+        },
+        type: 'input'
+    }, win)
+    .then((r) => {
+        if (r) {
+            let playParams = {};
+            playParams.type = "native";
+            playParams.videoSource = r;
+            win.webContents.send('fileSelected', playParams);
+        }
+    })
+    .catch(console.error);
 }
 
 function play() {

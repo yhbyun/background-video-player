@@ -6,7 +6,7 @@ module.exports = {
     electronBuilder: {
       nodeIntegration: true,
       // List native deps here if they don't work
-      externals: ['@ffmpeg-installer/ffmpeg'],
+      externals: ['@ffmpeg-installer/ffmpeg', 'electron-prompt'],
       chainWebpackMainProcess: config => {
         // Chain webpack config for electron main process only
         // https://github.com/nklayman/vue-cli-plugin-electron-builder/issues/139

@@ -17,6 +17,7 @@
   "dependencies": {
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "core-js": "^3.6.5",
+    "electron-prompt": "^1.6.2",
     "fluent-ffmpeg": "^2.1.2",
     "jsonfile": "^6.1.0",
     "video.js": "^7.13.3",
