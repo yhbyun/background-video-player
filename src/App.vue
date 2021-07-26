@@ -37,11 +37,6 @@ function createVideoHtml(source, poster, type) {
     return videoHtml;
 }
 
-function disableMouseClick(player) {
-    // https://github.com/videojs/video.js/issues/2444
-    player.el_.firstChild.style.pointerEvents = 'none';
-}
-
 export default {
     name: 'app',
     mounted () {
@@ -69,7 +64,6 @@ export default {
         let vid = document.getElementById("my-video");
 
         let player = videojs(vid);
-        disableMouseClick(player);
 
         document.onkeydown = (event) => {
             console.log("onkeypress", event);
@@ -104,7 +98,6 @@ export default {
             switch (message.type) {
                 case 'native':
                     player = videojs(vid);
-                    disableMouseClick(player);
                     player.play();
                     break;
 
@@ -113,7 +106,6 @@ export default {
                         techOrder: ['StreamPlay'],
                         StreamPlay: { duration: message.duration }
                     }, () => {
-                        disableMouseClick(player);
                         player.play()
                     });
                     break;
@@ -130,7 +122,6 @@ export default {
                             src: message.videoSource,
                         }]
                     }, () => {
-                        disableMouseClick(player);
                         player.play()
                     });
                     break;
