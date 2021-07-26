@@ -245,7 +245,7 @@ function createTray() {
 function openFile() {
     win.focus();
 
-    dialog.showOpenDialog({
+    dialog.showOpenDialog(win, {
         properties: ['openFile'],
         // filters: [
         //     {name: 'Movies', extensions: ['mkv', 'avi', 'mp4', 'rmvb', 'flv', 'ogv','webm', '3gp', 'mov']},
