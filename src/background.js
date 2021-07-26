@@ -274,12 +274,17 @@ function loadUrl() {
     .then((r) => {
         if (r) {
             let playParams = {};
-            playParams.type = "native";
+            playParams.type = isYoutubeUrl(r) ? 'youtube' : 'native';
             playParams.videoSource = r;
             win.webContents.send('fileSelected', playParams);
         }
     })
     .catch(console.error);
+}
+
+function isYoutubeUrl(url) {
+    const regExp = /^(?:https?:\/\/)?(?:m\.|www\.)?(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))((\w|-){11})(?:\S+)?$/;
+    return !!url.match(regExp);
 }
 
 function play() {

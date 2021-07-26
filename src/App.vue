@@ -10,6 +10,7 @@
 import { ipcRenderer } from 'electron'
 import videojs from 'video.js';
 import 'video.js/dist/video-js.css';
+import 'videojs-youtube';
 import './StreamPlayTech';
 
 function getWindowSize() {
@@ -21,13 +22,14 @@ function getWindowSize() {
     ]
 }
 
-function createVideoHtml(source, poster) {
+function createVideoHtml(source, poster, type) {
     const [width, height] = getWindowSize()
     const videoHtml =
         `<video id="my-video" class="video-js vjs-big-play-centered" controls preload="auto" width="${width}"
-    height="${height}" poster="${poster}" data-setup="{}">
-    <source src="${source}" type="video/mp4">
-    <p class="vjs-no-js">
+    height="${height}" poster="${poster}" data-setup="{}">`
+        + (type !== 'youtube' ? `<source src="${source}" type="video/mp4">` : '' )
+        +
+    `<p class="vjs-no-js">
     To view this video please enable JavaScript, and consider upgrading to a web browser that
     <a href="https://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a>
     </p>
@@ -96,20 +98,42 @@ export default {
             let vid = document.getElementById("my-video");
             videojs(vid).dispose();
 
-            videoContainer.innerHTML = createVideoHtml(message.videoSource, '');
+            videoContainer.innerHTML = createVideoHtml(message.videoSource, '', message.type);
             vid = document.getElementById('my-video');
-            if (message.type === 'native') {
-                player = videojs(vid);
-                disableMouseClick(player);
-                player.play();
-            } else if (message.type === 'stream') {
-                player = videojs(vid, {
-                    techOrder: ['StreamPlay'],
-                    StreamPlay: { duration: message.duration }
-                }, () => {
+
+            switch (message.type) {
+                case 'native':
+                    player = videojs(vid);
                     disableMouseClick(player);
-                    player.play()
-                });
+                    player.play();
+                    break;
+
+                case 'stream':
+                    player = videojs(vid, {
+                        techOrder: ['StreamPlay'],
+                        StreamPlay: { duration: message.duration }
+                    }, () => {
+                        disableMouseClick(player);
+                        player.play()
+                    });
+                    break;
+
+                case 'youtube':
+                    player = videojs(vid, {
+                        techOrder: ['youtube'],
+                        youtube: {
+                        //    ytControls: 2,
+                        //    iv_load_policy: 1,
+                        },
+                        sources: [{
+                            type: 'video/youtube',
+                            src: message.videoSource,
+                        }]
+                    }, () => {
+                        disableMouseClick(player);
+                        player.play()
+                    });
+                    break;
             }
         });
 
