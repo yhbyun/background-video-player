@@ -1,25 +1,27 @@
 "use strict";
 
-import { app, protocol, BrowserWindow, Menu, Tray, nativeImage, dialog, ipcMain } from "electron";
+import { app, protocol, BrowserWindow, dialog, ipcMain } from "electron";
 import {
     createProtocol,
     installVueDevtools
 } from "vue-cli-plugin-electron-builder/lib";
 import installExtension, { VUEJS3_DEVTOOLS } from 'electron-devtools-installer';
-import { config } from './config.js';
 import { videoSupport } from './ffmpeg-helper';
 import VideoServer from './VideoServer';
-import prompt from 'electron-prompt';
+import Store from 'electron-store';
+import services from './default-services';
+import { createTray } from './menu';
 
 const isDevelopment = process.env.NODE_ENV !== "production";
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let win;
-let tray;
-let settings;
 let httpServer;
 let isRendererReady = false;
+let defaultUserAgent;
+
+const store = new Store()
 
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([
@@ -43,19 +45,78 @@ function createWindow() {
         }
     });
 
-    win.maximize();
-    settings.transparency ? win.setOpacity(settings.opacity) : win.setOpacity(1)
-    win.setIgnoreMouseEvents(settings.ignoreMouseEvent)
-    win.setAlwaysOnTop(settings.alwaysOnTop);
+    defaultUserAgent = win.webContents.userAgent;
 
-    if (process.env.WEBPACK_DEV_SERVER_URL) {
-        // Load the url of the dev server if in development mode
-        win.loadURL(process.env.WEBPACK_DEV_SERVER_URL);
-        // if (!process.env.IS_TEST) win.webContents.openDevTools();
+    win.maximize();
+    store.get('options.transparency', true) ? win.setOpacity(store.get('options.opacity', 0.3)) : win.setOpacity(1)
+    win.setIgnoreMouseEvents(store.get('options.alwaysOnTop'))
+    win.setAlwaysOnTop(store.get('options.ignoreMouseEvent'))
+
+    // Detect and update version
+    if (!store.get('version')) {
+        store.set('version', app.getVersion());
+        store.set('services', []);
+        console.log('Initialised Config!');
+    }
+
+    // Load the services and merge the users and default services
+    let userServices = store.get('services') || [];
+    global.services = userServices;
+
+    services.forEach(dservice => {
+        let service = userServices.find(service => service.name == dservice.name);
+        if (service) {
+            global.services[userServices.indexOf(service)] = {
+                name: service.name ? service.name : dservice.name,
+                logo: service.logo ? service.logo : dservice.logo,
+                url: service.url ? service.url : dservice.url,
+                color: service.color ? service.color : dservice.color,
+                style: service.style ? service.style : dservice.style,
+                userAgent: service.userAgent ? service.userAgent : dservice.userAgent,
+                permissions: service.permissions ? service.permissions : dservice.permissions,
+                hidden: service.hidden != undefined ? service.hidden : dservice.hidden,
+            };
+        } else {
+            dservice._defaultService = true;
+            global.services.push(dservice);
+        }
+    });
+
+    let defaultService = store.get('options.defaultService'),
+    lastOpenedPage = store.get('options.lastOpenedPage'),
+    relaunchToPage = store.get('relaunch.toPage');
+
+    if (relaunchToPage !== undefined) {
+        console.log('Relaunching Page ' + relaunchToPage);
+        win.loadURL(relaunchToPage);
+        store.delete('relaunch.toPage');
+    } else if (defaultService == 'lastOpenedPage' && lastOpenedPage) {
+        console.log('Loading The Last Opened Page ' + lastOpenedPage);
+        win.loadURL(lastOpenedPage);
+    } else if (defaultService != undefined) {
+        defaultService = global.services.find(
+            service => service.name == defaultService
+        );
+        if (defaultService.url) {
+            console.log('Loading The Default Service ' + defaultService.url);
+            win.loadURL(defaultService.url);
+            win.webContents.userAgent = defaultService.userAgent ? defaultService.userAgent : defaultUserAgent;
+        } else {
+            console.log(
+                "Error Default Service Doesn't Have A URL Set. Falling back to the menu."
+            );
+            win.loadFile('src/ui/index.html');
+        }
     } else {
-        createProtocol("app");
-        // Load the index.html when not in development
-        win.loadURL("app://./index.html");
+        if (process.env.WEBPACK_DEV_SERVER_URL) {
+            // Load the url of the dev server if in development mode
+            win.loadURL(process.env.WEBPACK_DEV_SERVER_URL);
+            // if (!process.env.IS_TEST) win.webContents.openDevTools();
+        } else {
+            createProtocol("app");
+            // Load the index.html when not in development
+            win.loadURL("app://./index.html");
+        }
     }
 
     win.on("closed", () => {
@@ -91,15 +152,8 @@ app.on("ready", async () => {
         }
     }
 
-    settings = {
-        transparency: config.get('transparency', true),
-        opacity: config.get('opacity', 0.3),
-        alwaysOnTop: config.get('alwaysOnTop', true),
-        ignoreMouseEvent: config.get('ignoreMouseEvent', true),
-    };
-
-    createTray();
     createWindow();
+    createTray(store, global.services, win);
 });
 
 ipcMain.once("ipcRendererReady", (event, args) => {
@@ -110,6 +164,12 @@ ipcMain.once("ipcRendererReady", (event, args) => {
 ipcMain.on('fileDrop', (event, arg) => {
     console.log("fileDrop:", arg);
     onVideoFileSeleted(arg);
+});
+
+ipcMain.on('open-url', (e, service) => {
+    console.log('Openning Service ' + service.name);
+    win.webContents.userAgent = service.userAgent ? service.userAgent : defaultUserAgent;
+    win.loadURL(service.url);
 });
 
 // Exit cleanly on request from parent process in development mode.
@@ -184,141 +244,3 @@ function onVideoFileSeleted(videoFilePath) {
     })
 }
 
-function createTray() {
-    tray = new Tray(nativeImage.createEmpty())
-    tray.setTitle('Video')
-    tray.setToolTip('Video')
-
-    let contextMenu = Menu.buildFromTemplate([
-        { label: 'Open File', click() { openFile() } },
-        { label: 'Load URL', click() { loadUrl() } },
-        { label: 'Play', click() { play() } },
-        { label: 'Pause', click() { pause() } },
-        { type: 'separator' },
-        { label: 'Transparency',
-            submenu: [
-                {
-                    label: 'Enabled',
-                    id: 'transparency',
-                    type: 'checkbox',
-                    accelerator: process.platform === 'darwin' ? 'Command+Ctrl+Shift+O' : 'Ctrl+T',
-                    checked: settings.transparency,
-                    click: () => toggleTransparency(),
-                },
-                { label: 'Opacity',
-                    submenu: [
-                        { label: '10%', type: 'radio', checked: settings.opacity === 0.1, click(item) { setOpacity(item, 0.1) } },
-                        { label: '20%', type: 'radio', checked: settings.opacity === 0.2, click(item) { setOpacity(item, 0.2) } },
-                        { label: '30%', type: 'radio', checked: settings.opacity === 0.3, click(item) { setOpacity(item, 0.3) } },
-                        { label: '40%', type: 'radio', checked: settings.opacity === 0.4, click(item) { setOpacity(item, 0.4) } },
-                        { label: '50%', type: 'radio', checked: settings.opacity === 0.5, click(item) { setOpacity(item, 0.5) } },
-                        { label: '60%', type: 'radio', checked: settings.opacity === 0.6 , click(item) { setOpacity(item, 0.6) } },
-                        { label: '70%', type: 'radio', checked: settings.opacity === 0.7, click(item) { setOpacity(item, 0.7) } },
-                        { label: '80%', type: 'radio', checked: settings.opacity === 0.8, click(item) { setOpacity(item, 0.8) } },
-                        { label: '90%', type: 'radio', checked: settings.opacity === 0.9, click(item) { setOpacity(item, 0.9) } },
-                        { label: '100%', type: 'radio', checked: settings.opacity === 1, click(item) { setOpacity(item, 1) } },
-                    ],
-                },
-            ]
-        },
-        {
-            label: 'Always on top',
-            id: 'alwaysontop',
-            type: 'checkbox',
-            accelerator: process.platform === 'darwin' ? 'Command+Ctrl+Shift+A' : 'Ctrl+A',
-            checked: settings.alwaysOnTop,
-            click: () => toggleAlwaysOnTop(),
-        },
-        {
-            label: 'Disable Mouse',
-            id: 'ignore-mouse-event',
-            type: 'checkbox',
-            accelerator: process.platform === 'darwin' ? 'Command+Ctrl+Shift+M' : 'Ctrl+A',
-            checked: settings.ignoreMouseEvent,
-            click: () => toggleIgnoreMouseEvent(),
-        },
-        { type: 'separator' },
-        { role: 'quit' },
-    ])
-
-    tray.setContextMenu(contextMenu)
-}
-
-function openFile() {
-    win.focus();
-
-    dialog.showOpenDialog(win, {
-        properties: ['openFile'],
-        // filters: [
-        //     {name: 'Movies', extensions: ['mkv', 'avi', 'mp4', 'rmvb', 'flv', 'ogv','webm', '3gp', 'mov']},
-        // ]
-    }).then((result) => {
-        let canceled = result.canceled;
-        let filePaths = result.filePaths;
-        if (!canceled && win && filePaths.length > 0) {
-            onVideoFileSeleted(filePaths[0])
-        }
-    });
-}
-
-function loadUrl() {
-    prompt({
-        title: 'Video URL',
-        label: 'URL:',
-        value: 'https://example.org',
-        inputAttrs: {
-            type: 'url'
-        },
-        type: 'input'
-    }, win)
-    .then((r) => {
-        if (r) {
-            let playParams = {};
-            playParams.type = isYoutubeUrl(r) ? 'youtube' : 'native';
-            playParams.videoSource = r;
-            win.webContents.send('fileSelected', playParams);
-        }
-    })
-    .catch(console.error);
-}
-
-function isYoutubeUrl(url) {
-    const regExp = /^(?:https?:\/\/)?(?:m\.|www\.)?(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))((\w|-){11})(?:\S+)?$/;
-    return !!url.match(regExp);
-}
-
-function play() {
-    win.webContents.send('play-control', 'play')
-}
-
-function pause() {
-    win.webContents.send('play-control', 'pause')
-}
-
-function toggleTransparency() {
-    settings.transparency = !settings.transparency
-    config.set('transparency', settings.transparency)
-
-    settings.transparency ? win.setOpacity(settings.opacity) : win.setOpacity(1)
-}
-
-function toggleAlwaysOnTop() {
-    settings.alwaysOnTop = !settings.alwaysOnTop
-    config.set('alwaysOnTop', settings.alwaysOnTop)
-
-    win.setAlwaysOnTop(settings.alwaysOnTop)
-}
-
-function toggleIgnoreMouseEvent() {
-    settings.ignoreMouseEvent = !settings.ignoreMouseEvent
-    config.set('ignoreMouseEvent', settings.ignoreMouseEvent)
-
-    win.setIgnoreMouseEvents(settings.ignoreMouseEvent)
-}
-
-function setOpacity(item, opacity) {
-    item.checked = true
-    settings.opacity = opacity
-    config.set('opacity', settings.opacity)
-    win.setOpacity(settings.opacity)
-}

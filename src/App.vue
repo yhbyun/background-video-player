@@ -85,7 +85,11 @@ export default {
             } else if (message === 'pause') {
                 player.pause();
             }
-        })
+        });
+
+        ipcRenderer.on('openFile', (event, message) => {
+            ipcRenderer.send('fileDrop', message);
+        });
 
         ipcRenderer.on('fileSelected', (event, message) => {
             console.log('fileSelected:', message)
