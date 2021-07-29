@@ -12,6 +12,9 @@ import videojs from 'video.js';
 import 'video.js/dist/video-js.css';
 import 'videojs-youtube';
 import './StreamPlayTech';
+import path from 'path';
+
+/* global __static */
 
 function getWindowSize() {
     const { offsetWidth, offsetHeight } = document.documentElement
@@ -35,6 +38,47 @@ function createVideoHtml(source, poster, type) {
     </p>
     </video>`
     return videoHtml;
+}
+
+function isLoading() {
+    return document.body.classList.contains('loading');
+}
+
+function createElement(tag, initialClass = null, style = null) {
+    let elem = document.createElement(tag);
+    if (initialClass && initialClass.trim().length > 0)
+        elem.classList.add(initialClass);
+    if (style) {
+        Object.keys(style).forEach(key => {
+            elem.style[key] = style[key];
+        });
+    }
+    return elem;
+}
+
+// TODO: This is what is causing this issue lol
+function animateLoader(service) {
+    let img = createElement('img', null, service.style);
+    img.setAttribute('id', service.name);
+    img.setAttribute('src', 'file://' + path.join(__static, service.logo));
+    img.setAttribute('alt', service.name);
+
+    // create loader element
+    let loader = createElement('div', 'loader');
+
+    // create ripple element
+    let ripple = createElement('div', 'ripple', {
+        backgroundColor: service.color
+    });
+
+    // append ripple and (a clone of) img to loader
+    loader.appendChild(ripple);
+    loader.appendChild(img);
+
+    document.body.appendChild(loader);
+
+    // set global state to loading
+    document.body.classList.add('loading');
 }
 
 export default {
@@ -132,6 +176,13 @@ export default {
             }
         });
 
+        ipcRenderer.on('run-loader', (e, service) => {
+            if (isLoading()) return;
+
+            animateLoader(service);
+            console.log(`Switching to service ${service.name}} at the URL ${service.url}...`);
+        });
+
         ipcRenderer.send('ipcRendererReady', 'true');
     },
 }
@@ -145,9 +196,62 @@ body {
     overflow: hidden;
 }
 
+body {
+    -webkit-app-region: drag;
+    margin: 0;
+    background-color: rgba(52, 52, 52, 0.95);
+    display: grid;
+    height: 100vh;
+}
+
 #video-container,
 #my-video {
     width: 100vw;
     height: 100vh;
+}
+
+.loader > img {
+    margin: 0 auto;
+    display: block;
+    height: 110px;
+    width: auto;
+    padding: 5px 0;
+    -webkit-user-drag: none;
+    -webkit-app-region: no-drag;
+}
+
+.loader {
+    position: fixed;
+    transition: all 0.2s cubic-bezier(0.23, 1, 0.32, 1); /* easeOutQuint */
+    z-index: 100;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.loader > .ripple {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    animation: ripple 0.8s 0.2s cubic-bezier(0.23, 1, 0.32, 1) infinite; /* easeOutQuint */
+    background-color: white; /* will be replaced later by JS */
+    z-index: -1;
+    transform-origin: top left;
+    transform: scale(0) translate(-50%, -50%);
+}
+
+@keyframes ripple {
+    from {
+        opacity: 0.8;
+        transform: scale(0) translate(-50%, -50%);
+    }
+
+    to {
+        opacity: 0;
+        transform: scale(1) translate(-50%, -50%);
+    }
 }
 </style>

@@ -21,6 +21,7 @@ export function createTray(store, services, win) {
             click() {
                 console.log('Changing URL To: ' + service.url);
                 win.loadURL(service.url);
+                win.send('run-loader', service);
             }
         }));
 
