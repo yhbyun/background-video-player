@@ -1,10 +1,7 @@
 "use strict";
 
 import { app, protocol, BrowserWindow, dialog, ipcMain } from "electron";
-import {
-    createProtocol,
-    installVueDevtools
-} from "vue-cli-plugin-electron-builder/lib";
+import { createProtocol } from "vue-cli-plugin-electron-builder/lib";
 import installExtension, { VUEJS3_DEVTOOLS } from 'electron-devtools-installer';
 import { videoSupport } from './ffmpeg-helper';
 import VideoServer from './VideoServer';
