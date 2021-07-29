@@ -151,6 +151,16 @@ export function createTray(store, services, win) {
                 win.setIgnoreMouseEvents(e.checked);
             },
         },
+        {
+            label: 'Loop',
+            id: 'loop',
+            type: 'checkbox',
+            accelerator: process.platform === 'darwin' ? 'Command+Ctrl+Shift+L' : 'Ctrl+L',
+            checked: store.get('options.loop', false),
+            click(e) {
+                store.set('options.loop', e.checked);
+            },
+        },
         { type: 'separator' },
         { role: 'quit' },
     ]);

@@ -191,10 +191,8 @@ ipcMain.on('fileDrop', (event, arg) => {
     onVideoFileSeleted(arg);
 });
 
-ipcMain.on('open-url', (e, service) => {
-    console.log('Openning Service ' + service.name);
-    win.webContents.userAgent = service.userAgent ? service.userAgent : defaultUserAgent;
-    win.loadURL(service.url);
+ipcMain.handle('getStoreValue', (event, ...args) => {
+    return store.get(args[0], args[1]);
 });
 
 // Exit cleanly on request from parent process in development mode.

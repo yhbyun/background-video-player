@@ -143,36 +143,43 @@ export default {
             videoContainer.innerHTML = createVideoHtml(message.videoSource, '', message.type, true);
             vid = document.getElementById('my-video');
 
-            switch (message.type) {
-                case 'native':
-                    player = videojs(vid, {
-                        autoplay: true
-                    });
-                    break;
+            (async () => {
+                const loop = await ipcRenderer.invoke('getStoreValue', 'options.loop', false);
 
-                case 'stream':
-                    player = videojs(vid, {
-                        techOrder: ['StreamPlay'],
-                        StreamPlay: { duration: message.duration },
-                        autoplay: true,
-                    });
-                    break;
+                switch (message.type) {
+                    case 'native':
+                        player = videojs(vid, {
+                            autoplay: true,
+                            loop: loop,
+                        });
+                        break;
 
-                case 'youtube':
-                    player = videojs(vid, {
-                        techOrder: ['youtube'],
-                        youtube: {
-                        //    ytControls: 2,
-                        //    iv_load_policy: 1,
-                        },
-                        sources: [{
-                            type: 'video/youtube',
-                            src: message.videoSource,
-                        }],
-                        autoplay: true,
-                    });
-                    break;
-            }
+                    case 'stream':
+                        player = videojs(vid, {
+                            techOrder: ['StreamPlay'],
+                            StreamPlay: { duration: message.duration },
+                            autoplay: true,
+                            loop: loop,
+                        });
+                        break;
+
+                    case 'youtube':
+                        player = videojs(vid, {
+                            techOrder: ['youtube'],
+                            youtube: {
+                            //    ytControls: 2,
+                            //    iv_load_policy: 1,
+                            },
+                            sources: [{
+                                type: 'video/youtube',
+                                src: message.videoSource,
+                            }],
+                            autoplay: true,
+                            loop: loop,
+                        });
+                        break;
+                }
+            })();
         });
 
         ipcRenderer.on('run-loader', (e, service) => {
