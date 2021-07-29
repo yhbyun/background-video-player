@@ -194,8 +194,7 @@ function loadUrl(win) {
             type: 'url'
         },
         type: 'input',
-        alwaysOnTop: true
-    })
+    }, win)
     .then((r) => {
         if (r) {
             let playParams = {};
