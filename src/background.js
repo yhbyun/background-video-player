@@ -195,7 +195,7 @@ function onVideoFileSeleted(videoFilePath) {
             }
             let playParams = {};
             playParams.type = "native";
-            playParams.videoSource = videoFilePath;
+            playParams.videoSource = 'file://' + videoFilePath;
             if (isRendererReady) {
                 console.log("fileSelected=", playParams)
 
