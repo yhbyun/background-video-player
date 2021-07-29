@@ -47,10 +47,21 @@ function createWindow() {
 
     defaultUserAgent = win.webContents.userAgent;
 
-    win.maximize();
     store.get('options.transparency', true) ? win.setOpacity(store.get('options.opacity', 0.3)) : win.setOpacity(1)
     win.setIgnoreMouseEvents(store.get('options.alwaysOnTop'))
     win.setAlwaysOnTop(store.get('options.ignoreMouseEvent'))
+
+    // Reset The Windows Size and Location
+    let windowDetails = store.get('options.windowDetails');
+    if (windowDetails) {
+        win.setSize(windowDetails.size[0], windowDetails.size[1]);
+        win.setPosition(
+            windowDetails.position[0],
+            windowDetails.position[1]
+        );
+    } else {
+        win.maximize();
+    }
 
     // Detect and update version
     if (!store.get('version')) {
@@ -118,6 +129,23 @@ function createWindow() {
             win.loadURL("app://./index.html");
         }
     }
+
+    win.on("close", () => {
+        // Save open service if lastOpenedPage is the default service
+        if (store.get('options.defaultService') === 'lastOpenedPage') {
+            store.set('options.lastOpenedPage', win.getURL());
+        }
+
+        // If enabled store the window details so they can be restored upon restart
+        if (win) {
+            store.set('options.windowDetails', {
+                position: win.getPosition(),
+                size: win.getSize()
+            });
+        } else {
+            console.error('Error window was not defined while trying to save windowDetails');
+        }
+    });
 
     win.on("closed", () => {
         win = null;
