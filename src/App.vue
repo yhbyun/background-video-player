@@ -25,11 +25,11 @@ function getWindowSize() {
     ]
 }
 
-function createVideoHtml(source, poster, type, autoplay = false) {
+function createVideoHtml(source, poster, type) {
     const [width, height] = getWindowSize()
     const videoHtml =
         `<video id="my-video" class="video-js vjs-big-play-centered" controls preload="auto" width="${width}"
-    height="${height}" poster="${poster}" data-setup='{ "autoplay" : ${autoplay} }'>`
+    height="${height}" poster="${poster}" data-setup='{}'>`
         + (type !== 'youtube' ? `<source src="${source}" type="video/mp4">` : '' )
         +
     `<p class="vjs-no-js">
@@ -145,13 +145,16 @@ export default {
 
             switch (message.type) {
                 case 'native':
-                    player = videojs(vid);
+                    player = videojs(vid, {
+                        autoplay: true
+                    });
                     break;
 
                 case 'stream':
                     player = videojs(vid, {
                         techOrder: ['StreamPlay'],
-                        StreamPlay: { duration: message.duration }
+                        StreamPlay: { duration: message.duration },
+                        autoplay: true,
                     });
                     break;
 
@@ -165,9 +168,8 @@ export default {
                         sources: [{
                             type: 'video/youtube',
                             src: message.videoSource,
-                        }]
-                    }, () => {
-                        player.play()
+                        }],
+                        autoplay: true,
                     });
                     break;
             }
