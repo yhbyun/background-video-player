@@ -48,8 +48,8 @@ function createWindow() {
     defaultUserAgent = win.webContents.userAgent;
 
     store.get('options.transparency', true) ? win.setOpacity(store.get('options.opacity', 0.3)) : win.setOpacity(1)
-    win.setIgnoreMouseEvents(store.get('options.alwaysOnTop'))
-    win.setAlwaysOnTop(store.get('options.ignoreMouseEvent'))
+    win.setIgnoreMouseEvents(store.get('options.ignoreMouseEvent'))
+    win.setAlwaysOnTop(store.get('options.alwaysOnTop'))
 
     // Reset The Windows Size and Location
     let windowDetails = store.get('options.windowDetails');
