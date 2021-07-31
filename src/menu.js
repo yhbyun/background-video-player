@@ -147,11 +147,31 @@ export function createTray(store, services, win) {
             label: 'Disable Mouse',
             id: 'ignore-mouse-event',
             type: 'checkbox',
-            accelerator: process.platform === 'darwin' ? 'Command+Ctrl+Shift+M' : 'Ctrl+A',
+            accelerator: process.platform === 'darwin' ? 'Command+Ctrl+Shift+M' : 'Ctrl+M',
             checked: store.get('options.ignoreMouseEvent', true),
             click(e) {
                 store.set('options.ignoreMouseEvent', e.checked);
                 win.setIgnoreMouseEvents(e.checked);
+            },
+        },
+        {
+            label: 'Background Play',
+            id: 'background-play',
+            type: 'checkbox',
+            accelerator: process.platform === 'darwin' ? 'Command+Ctrl+Shift+B' : 'Ctrl+B',
+            checked: store.get('options.transparency', true) && store.get('options.alwaysOnTop', true) && store.get('options.ignoreMouseEvent', true),
+            click(e) {
+                store.set('options.transparency', e.checked);
+                e.checked ? win.setOpacity(opacity) : win.setOpacity(1);
+                contextMenu.getMenuItemById('transparency').checked = e.checked;
+
+                store.set('options.alwaysOnTop', e.checked);
+                win.setAlwaysOnTop(e.checked);
+                contextMenu.getMenuItemById('alwaysontop').checked = e.checked;
+
+                store.set('options.ignoreMouseEvent', e.checked);
+                win.setIgnoreMouseEvents(e.checked);
+                contextMenu.getMenuItemById('ignore-mouse-event').checked = e.checked;
             },
         },
         {
