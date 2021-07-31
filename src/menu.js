@@ -67,7 +67,9 @@ export function createTray(store, services, win) {
 
     let contextMenu = Menu.buildFromTemplate([
         { label: 'Open File', click() { openFile(win) } },
-        { label: 'Load URL', click() { loadUrl(win) } },
+        { label: 'Load Video', click() { loadVideoUrl(win) } },
+        { label: 'Load Page', click() { loadPageUrl(win) } },
+        { type: 'separator' },
         { label: 'Services', submenu: servicesMenuItems },
         { label: 'Enabled Services', submenu: enabledServicesMenuItems },
         { label: 'Default Service',
@@ -97,6 +99,7 @@ export function createTray(store, services, win) {
                 { type: 'separator' }
             ].concat(defaultServiceMenuItems)
         },
+        { type: 'separator' },
         { label: 'Play', click() { win.send('play-control', 'play') } },
         { label: 'Pause', click() { win.send('play-control', 'pause') } },
         { type: 'separator' },
@@ -185,10 +188,10 @@ function openFile(win) {
     });
 }
 
-function loadUrl(win) {
+function loadVideoUrl(win) {
     prompt({
         title: 'Video URL',
-        label: 'URL:',
+        label: 'Video URL:',
         value: 'https://example.org',
         inputAttrs: {
             type: 'url'
@@ -201,6 +204,25 @@ function loadUrl(win) {
             playParams.type = isYoutubeUrl(r) ? 'youtube' : 'native';
             playParams.videoSource = r;
             win.send('fileSelected', playParams);
+        }
+    })
+    .catch(console.error);
+}
+
+function loadPageUrl(win) {
+    prompt({
+        title: 'Page URL',
+        label: 'URL:',
+        value: 'https://example.org',
+        inputAttrs: {
+            type: 'url'
+        },
+        type: 'input',
+    }, win)
+    .then((r) => {
+        if (r) {
+            console.log('Changing URL To: ' + r);
+            win.loadURL(r);
         }
     })
     .catch(console.error);
