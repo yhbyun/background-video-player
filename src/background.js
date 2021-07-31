@@ -1,13 +1,13 @@
 "use strict";
 
-import { app, protocol, BrowserWindow, dialog, ipcMain } from "electron";
+import { app, protocol, BrowserWindow, Tray, Menu, nativeImage, dialog, ipcMain } from "electron";
 import { createProtocol } from "vue-cli-plugin-electron-builder/lib";
 import installExtension, { VUEJS3_DEVTOOLS } from 'electron-devtools-installer';
 import { videoSupport } from './ffmpeg-helper';
 import VideoServer from './VideoServer';
 import Store from 'electron-store';
 import services from './default-services';
-import { createTray } from './menu';
+import { getTrayMenu, getApplicationMenu } from './menu';
 
 const isDevelopment = process.env.NODE_ENV !== "production";
 
@@ -15,6 +15,7 @@ const isDevelopment = process.env.NODE_ENV !== "production";
 // be closed automatically when the JavaScript object is garbage collected.
 let win;
 let httpServer;
+let tray;
 let isRendererReady = false;
 let defaultUserAgent;
 
@@ -178,7 +179,12 @@ app.on("ready", async () => {
     }
 
     createWindow();
-    createTray(store, global.services, win);
+    Menu.setApplicationMenu(getApplicationMenu(store, global.services, win, app));
+
+    tray = new Tray(nativeImage.createEmpty())
+    tray.setTitle('Video')
+    tray.setToolTip('Video')
+    tray.setContextMenu(getTrayMenu(store, global.services, win));
 });
 
 ipcMain.once("ipcRendererReady", (event, args) => {
