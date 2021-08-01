@@ -17,8 +17,14 @@ import Store from 'electron-store';
 import services from './default-services';
 import { getTrayMenu, getApplicationMenu } from './menu';
 import path from 'path';
+import fs from 'fs';
 
 const isDevelopment = process.env.NODE_ENV !== 'production';
+
+const headerScript = fs.readFileSync(
+    path.join(__dirname, 'client-header.js'),
+    'utf8'
+);
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -49,6 +55,7 @@ function createWindow() {
             contextIsolation: false,
             enableRemoteModule: true,
             webSecurity: false,
+            preload: path.join(__dirname, 'preload.js'),
         },
     });
 
@@ -155,6 +162,8 @@ function createWindow() {
         }
     }
 
+    win.webContents.on('dom-ready', broswerWindowDomReady);
+
     win.on('close', () => {
         // Save open service if lastOpenedPage is the default service
         if (store.get('options.defaultService') === 'lastOpenedPage') {
@@ -258,6 +267,25 @@ ipcMain.handle('getStoreValue', (event, ...args) => {
     return store.get(args[0], args[1]);
 });
 
+ipcMain.on('mouseOver', (event, args) => {
+    if (store.get('options.transparency')) {
+        const opacity = store.get('options.opacity', 0.3);
+
+        switch (store.get('options.transparent_mode')) {
+            case 'always':
+                break;
+
+            case 'mouse_over':
+                win.setOpacity(args === 'over' ? opacity : 1);
+                break;
+
+            case 'mouse_out':
+                win.setOpacity(args === 'over' ? 1 : opacity);
+                break;
+        }
+    }
+});
+
 // Exit cleanly on request from parent process in development mode.
 if (isDevelopment) {
     if (process.platform === 'win32') {
@@ -336,4 +364,8 @@ function onVideoFileSeleted(videoFilePath) {
                 console.log('showMessageBox', index);
             });
         });
+}
+
+function broswerWindowDomReady() {
+    win.webContents.executeJavaScript(headerScript);
 }

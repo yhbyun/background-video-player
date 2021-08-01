@@ -71,6 +71,7 @@ function getServiceMenuItems(store, services, win) {
 
 function getSettingsMenuItems(store, services, win) {
     const opacity = store.get('options.opacity', 0.3);
+    const transparentMode = store.get('options.transparent_mode', 'always');
 
     const { defaultServiceMenuItems, enabledServicesMenuItems } =
         getServiceMenuItems(store, services, win);
@@ -181,6 +182,41 @@ function getSettingsMenuItems(store, services, win) {
                             },
                         },
                     ],
+                },
+                { type: 'separator' },
+                {
+                    label: 'Always',
+                    type: 'radio',
+                    checked: transparentMode === 'always',
+                    click(item) {
+                        item.checked = true;
+                        store.set('options.transparent_mode', 'mouse_over');
+                        if (store.get('options.transparency')) {
+                            win.setOpacity(store.get('options.opacity', 0.3));
+                        }
+                    },
+                },
+                {
+                    label: 'Mouse Over',
+                    type: 'radio',
+                    checked: transparentMode === 'mouse_over',
+                    click(item) {
+                        item.checked = true;
+                        store.set('options.transparent_mode', 'mouse_over');
+                        win.setOpacity(1);
+                    },
+                },
+                {
+                    label: 'Mouse Out',
+                    type: 'radio',
+                    checked: transparentMode === 'mouse_out',
+                    click(item) {
+                        item.checked = true;
+                        store.set('options.transparent_mode', 'mouse_out');
+                        if (store.get('options.transparency')) {
+                            win.setOpacity(store.get('options.opacity', 0.3));
+                        }
+                    },
                 },
             ],
         },

@@ -22,7 +22,7 @@ yarn electron:build
 
 ## todo lists
 
-- [ ] Set opacity 1 on mouse hover
+- [X] Set opacity 1 on mouse hover
 - [ ] subtitle supports
 - [ ] keyboard shortcuts
 - [ ] netflix play
