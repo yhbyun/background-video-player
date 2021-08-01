@@ -3,50 +3,31 @@
 Electron app to play videos in the background
 
 ## Project setup
-```
+
+```sh
 yarn install
 ```
 
 ## To start a Development Server
-```
+
+```sh
 yarn electron:serve
 ```
 
-#### warning  in ./node_modules/@ffmpeg-installer/ffmpeg/index.js
-Critical dependency: the request of a dependency is an expression
-- 무시
-
-#### Cannot find module "[...]@ffmpeg-installer/darwin-x64/package.json"
-
-vue.config.js
-```js
-module.exports = {
-  pluginOptions: {
-    electronBuilder: {
-      nodeIntegration: true,
-      // List native deps here if they don't work
-      externals: ['@ffmpeg-installer/ffmpeg']
-```
-
-#### (node:41023) ExtensionLoadWarning: Warnings loading extension at /Users/yhbyun/Library/Application Support/background-video-player/extensions/ljjemllljcmogpfapbkkighbhhppjdbg:
-  Unrecognized manifest key 'browser_action'.
-  Unrecognized manifest key 'update_url'.
-  Permission 'contextMenus' is unknown or URL pattern is malformed.
-  Cannot load extension with file or directory name _metadata. Filenames starting with "_" are reserved for use by the system.
-(Use `Electron --trace-warnings ...` to show where the warning was created)
-- 무시
-
 ## To Build Your App
-```
+
+```sh
 yarn electron:build
 ```
 
 ## todo lists
 
+- [ ] Set opacity 1 on mouse hover
 - [ ] subtitle supports
 - [ ] keyboard shortcuts
 - [ ] netflix play
 
 ## References
 
-- https://github.com/ziyang0116/rockplayer
+-  https://github.com/ziyang0116/rockplayer
+
