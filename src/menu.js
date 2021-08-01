@@ -224,7 +224,7 @@ export function getTrayMenu(store, services, win) {
 }
 
 export function getApplicationMenu(store, services, win, app) {
-    const { servicesMenuItems, defaultServiceMenuItems, enabledServicesMenuItems} = getServiceMenuItems(store, services, win);
+    const { servicesMenuItems } = getServiceMenuItems(store, services, win);
 
     return Menu.buildFromTemplate([
         {
@@ -266,40 +266,7 @@ export function getApplicationMenu(store, services, win, app) {
         },
         {
             label: 'Settings',
-            submenu: getSettingsMenuItems(store, services, win).concat([
-                {
-                    label: 'Enabled Services',
-                    submenu: enabledServicesMenuItems
-                },
-                {
-                    label: 'Default Service',
-                    submenu: [
-                        {
-                            label: 'Menu',
-                            type: 'checkbox',
-                            click(e) {
-                                e.menu.items.forEach(e => {
-                                    if (!(e.label === 'Menu')) e.checked = false;
-                                });
-                                store.delete('options.defaultService');
-                            },
-                            checked: store.get('options.defaultService') === undefined
-                        },
-                        {
-                            label: 'Last Opened Page',
-                            type: 'checkbox',
-                            click(e) {
-                                e.menu.items.forEach(e => {
-                                    if (!(e.label === 'Last Opened Page')) e.checked = false;
-                                });
-                                store.set('options.defaultService', 'lastOpenedPage');
-                            },
-                            checked: store.get('options.defaultService') === 'lastOpenedPage'
-                        },
-                        { type: 'separator' }
-                    ].concat(defaultServiceMenuItems)
-                },
-            ]),
+            submenu: getSettingsMenuItems(store, services, win),
         },
         {
             label: 'Edit',
