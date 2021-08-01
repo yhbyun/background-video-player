@@ -8,6 +8,7 @@ import VideoServer from './VideoServer';
 import Store from 'electron-store';
 import services from './default-services';
 import { getTrayMenu, getApplicationMenu } from './menu';
+import path from 'path';
 
 const isDevelopment = process.env.NODE_ENV !== "production";
 
@@ -181,8 +182,7 @@ app.on("ready", async () => {
     createWindow();
     Menu.setApplicationMenu(getApplicationMenu(store, global.services, win, app));
 
-    tray = new Tray(nativeImage.createEmpty())
-    tray.setTitle('Video')
+    tray = new Tray(path.join(__static, 'icon@32.png'))
     tray.setToolTip('Video')
     tray.setContextMenu(getTrayMenu(store, global.services, win));
 });
