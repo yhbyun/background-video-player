@@ -17,7 +17,7 @@ class StreamPlayTech extends Html5 {
     setCurrentTime(seconds) {
         this._startTime = seconds;
         try {
-            var src = "http://127.0.0.1:8888?startTime=" + seconds
+            var src = 'http://127.0.0.1:8888?startTime=' + seconds;
             this.setSrc(src);
         } catch (e) {
             // videojs.log.warn('Video is not ready. (Video.js)');
@@ -30,8 +30,12 @@ class StreamPlayTech extends Html5 {
 }
 
 if (Tech.getTech('StreamPlay')) {
-    videojs.log.warn('Not using videojs-StreamPlay as it appears to already be registered');
-    videojs.log.warn('videojs-StreamPlay should only be used with video.js@6 and above');
+    videojs.log.warn(
+        'Not using videojs-StreamPlay as it appears to already be registered'
+    );
+    videojs.log.warn(
+        'videojs-StreamPlay should only be used with video.js@6 and above'
+    );
 } else {
     videojs.registerTech('StreamPlay', StreamPlayTech);
 }

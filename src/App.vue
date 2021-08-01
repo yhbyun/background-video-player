@@ -7,7 +7,7 @@
 </template>
 
 <script>
-import { ipcRenderer } from 'electron'
+import { ipcRenderer } from 'electron';
 import videojs from 'video.js';
 import 'video.js/dist/video-js.css';
 import 'videojs-youtube';
@@ -17,26 +17,27 @@ import path from 'path';
 /* global __static */
 
 function getWindowSize() {
-    const { offsetWidth, offsetHeight } = document.documentElement
-    const { innerHeight } = window // innerHeight will be blank in Windows system
+    const { offsetWidth, offsetHeight } = document.documentElement;
+    const { innerHeight } = window; // innerHeight will be blank in Windows system
     return [
         offsetWidth,
-        innerHeight > offsetHeight ? offsetHeight : innerHeight
-    ]
+        innerHeight > offsetHeight ? offsetHeight : innerHeight,
+    ];
 }
 
 function createVideoHtml(source, poster, type) {
-    const [width, height] = getWindowSize()
+    const [width, height] = getWindowSize();
     const videoHtml =
         `<video id="my-video" class="video-js vjs-big-play-centered" controls preload="auto" width="${width}"
-    height="${height}" poster="${poster}" data-setup='{}'>`
-        + (type !== 'youtube' ? `<source src="${source}" type="video/mp4">` : '' )
-        +
-    `<p class="vjs-no-js">
+    height="${height}" poster="${poster}" data-setup='{}'>` +
+        (type !== 'youtube'
+            ? `<source src="${source}" type="video/mp4">`
+            : '') +
+        `<p class="vjs-no-js">
     To view this video please enable JavaScript, and consider upgrading to a web browser that
     <a href="https://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a>
     </p>
-    </video>`
+    </video>`;
     return videoHtml;
 }
 
@@ -49,7 +50,7 @@ function createElement(tag, initialClass = null, style = null) {
     if (initialClass && initialClass.trim().length > 0)
         elem.classList.add(initialClass);
     if (style) {
-        Object.keys(style).forEach(key => {
+        Object.keys(style).forEach((key) => {
             elem.style[key] = style[key];
         });
     }
@@ -68,7 +69,7 @@ function animateLoader(service) {
 
     // create ripple element
     let ripple = createElement('div', 'ripple', {
-        backgroundColor: service.color
+        backgroundColor: service.color,
     });
 
     // append ripple and (a clone of) img to loader
@@ -83,10 +84,13 @@ function animateLoader(service) {
 
 export default {
     name: 'app',
-    mounted () {
+    mounted() {
         let holder = this.$refs.holder;
         let videoContainer = this.$refs.videoContainer;
-        let videoHtml = createVideoHtml('https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-1080p.mp4', 'https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.jpg')
+        let videoHtml = createVideoHtml(
+            'https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-1080p.mp4',
+            'https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.jpg'
+        );
         videoContainer.innerHTML = videoHtml;
 
         holder.ondragover = function () {
@@ -99,19 +103,19 @@ export default {
 
         holder.ondrop = function (e) {
             e.preventDefault();
-            var file = e.dataTransfer.files[0];
+            const file = e.dataTransfer.files[0];
             console.log('File you dragged here is', file.path);
             ipcRenderer.send('fileDrop', file.path);
             return false;
         };
 
-        let vid = document.getElementById("my-video");
+        let vid = document.getElementById('my-video');
 
         let player = videojs(vid);
 
         document.onkeydown = (event) => {
-            console.log("onkeypress", event);
-            if (event.code === "Space") {
+            console.log('onkeypress', event);
+            if (event.code === 'Space') {
                 if (player) {
                     if (player.paused()) {
                         player.play();
@@ -121,7 +125,7 @@ export default {
                 }
                 return false;
             }
-        }
+        };
 
         ipcRenderer.on('play-control', (event, message) => {
             if (message === 'play') {
@@ -136,15 +140,24 @@ export default {
         });
 
         ipcRenderer.on('fileSelected', (event, message) => {
-            console.log('fileSelected:', message)
-            let vid = document.getElementById("my-video");
+            console.log('fileSelected:', message);
+            let vid = document.getElementById('my-video');
             videojs(vid).dispose();
 
-            videoContainer.innerHTML = createVideoHtml(message.videoSource, '', message.type, true);
+            videoContainer.innerHTML = createVideoHtml(
+                message.videoSource,
+                '',
+                message.type,
+                true
+            );
             vid = document.getElementById('my-video');
 
             (async () => {
-                const loop = await ipcRenderer.invoke('getStoreValue', 'options.loop', false);
+                const loop = await ipcRenderer.invoke(
+                    'getStoreValue',
+                    'options.loop',
+                    false
+                );
 
                 switch (message.type) {
                     case 'native':
@@ -167,13 +180,15 @@ export default {
                         player = videojs(vid, {
                             techOrder: ['youtube'],
                             youtube: {
-                            //    ytControls: 2,
-                            //    iv_load_policy: 1,
+                                //    ytControls: 2,
+                                //    iv_load_policy: 1,
                             },
-                            sources: [{
-                                type: 'video/youtube',
-                                src: message.videoSource,
-                            }],
+                            sources: [
+                                {
+                                    type: 'video/youtube',
+                                    src: message.videoSource,
+                                },
+                            ],
                             autoplay: true,
                             loop: loop,
                         });
@@ -186,12 +201,14 @@ export default {
             if (isLoading()) return;
 
             animateLoader(service);
-            console.log(`Switching to service ${service.name}} at the URL ${service.url}...`);
+            console.log(
+                `Switching to service ${service.name}} at the URL ${service.url}...`
+            );
         });
 
         ipcRenderer.send('ipcRendererReady', 'true');
     },
-}
+};
 </script>
 
 <style>
