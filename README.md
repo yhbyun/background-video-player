@@ -43,8 +43,9 @@ yarn electron:build
 
 ## todo lists
 
-- [ ] mkv file format
-- [ ] Subtitle supports
+- [ ] subtitle supports
+- [ ] keyboard shortcuts
+- [ ] netflix play
 
 ## References
 
