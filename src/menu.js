@@ -168,11 +168,11 @@ function getSettingsMenuItems(store, services, win) {
         { label: 'Default Service',
             submenu: [
                 {
-                    label: 'Menu',
+                    label: 'Empty Page',
                     type: 'checkbox',
                     click(e) {
                         e.menu.items.forEach(e => {
-                            if (!(e.label === 'Menu')) e.checked = false;
+                            if (!(e.label === 'Empty Page')) e.checked = false;
                         });
                         store.delete('options.defaultService');
                     },

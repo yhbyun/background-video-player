@@ -112,10 +112,16 @@ function createWindow() {
             win.loadURL(defaultService.url);
             win.webContents.userAgent = defaultService.userAgent ? defaultService.userAgent : defaultUserAgent;
         } else {
-            console.log(
-                "Error Default Service Doesn't Have A URL Set. Falling back to the menu."
-            );
-            win.loadFile('src/ui/index.html');
+            console.log("Error Default Service Doesn't Have A URL Set. Falling back to the empty page.");
+            if (process.env.WEBPACK_DEV_SERVER_URL) {
+                // Load the url of the dev server if in development mode
+                win.loadURL(process.env.WEBPACK_DEV_SERVER_URL);
+                // if (!process.env.IS_TEST) win.webContents.openDevTools();
+            } else {
+                createProtocol("app");
+                // Load the index.html when not in development
+                win.loadURL("app://./index.html");
+            }
         }
     } else {
         if (process.env.WEBPACK_DEV_SERVER_URL) {
