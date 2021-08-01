@@ -149,6 +149,29 @@ function createWindow() {
     win.on("closed", () => {
         win = null;
     });
+
+    // Emitted when website requests permissions - Electron default allows any permission this restricts websites
+    win.webContents.session.setPermissionRequestHandler(
+        (webContents, permission, callback) => {
+            let websiteOrigin = new URL(webContents.getURL()).origin;
+            let service = global.services.find(
+                service => new URL(service.url).origin == websiteOrigin
+            );
+
+            if (
+                (service &&
+                service.permissions &&
+                service.permissions.includes(permission)) ||
+                permission == 'fullscreen'
+            ) {
+                console.log(`Allowed Requested Browser Permission '${permission}' For Site '${websiteOrigin}'`);
+                return callback(true);
+            }
+
+            console.log(`Rejected Requested Browser Permission '${permission}' For Site '${websiteOrigin}'`);
+            return callback(false);
+        }
+    );
 }
 
 // Quit when all windows are closed.
