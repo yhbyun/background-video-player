@@ -8,6 +8,7 @@ import {
     Menu,
     dialog,
     ipcMain,
+    screen,
 } from 'electron';
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib';
 import installExtension, { VUEJS3_DEVTOOLS } from 'electron-devtools-installer';
@@ -33,6 +34,7 @@ let httpServer;
 let tray;
 let isRendererReady = false;
 let defaultUserAgent;
+let orgBounds;
 
 const store = new Store();
 
@@ -271,12 +273,42 @@ ipcMain.on('mouseEnter', (event, args) => {
     if (store.get('options.transparency')) {
         const opacity = store.get('options.opacity', 0.3);
 
+        if (
+            ['mouse_over_zoom', 'mouse_out_zoom'].indexOf(
+                store.get('options.transparent_mode')
+            ) >= 0
+        ) {
+            const { width, height } = screen.getPrimaryDisplay().workAreaSize;
+            const bounds = win.getBounds();
+            orgBounds = Object.assign({}, bounds);
+
+            if (bounds.x && bounds.x + bounds.width * 2 > width) {
+                bounds.x -= bounds.width;
+                if (bounds.x < 0) bounds.x = 0;
+            }
+
+            if (bounds.y && bounds.y + bounds.height * 2 > height) {
+                bounds.y -= bounds.height;
+                if (bounds.y < 0) bounds.y = 0;
+            }
+
+            bounds.width += bounds.width;
+            bounds.height += bounds.height;
+
+            if (bounds.width > width) bounds.width = width;
+            if (bounds.height > height) bounds.height = height;
+
+            win.setBounds(bounds, false);
+        }
+
         switch (store.get('options.transparent_mode')) {
             case 'mouse_over':
+            case 'mouse_over_zoom':
                 win.setOpacity(opacity);
                 break;
 
             case 'mouse_out':
+            case 'mouse_out_zoom':
                 win.setOpacity(1);
                 break;
         }
@@ -287,12 +319,22 @@ ipcMain.on('mouseLeave', (event, args) => {
     if (store.get('options.transparency')) {
         const opacity = store.get('options.opacity', 0.3);
 
+        if (
+            ['mouse_over_zoom', 'mouse_out_zoom'].indexOf(
+                store.get('options.transparent_mode')
+            ) >= 0
+        ) {
+            win.setBounds(orgBounds, false);
+        }
+
         switch (store.get('options.transparent_mode')) {
             case 'mouse_over':
+            case 'mouse_over_zoom':
                 win.setOpacity(1);
                 break;
 
             case 'mouse_out':
+            case 'mouse_out_zoom':
                 win.setOpacity(opacity);
                 break;
         }

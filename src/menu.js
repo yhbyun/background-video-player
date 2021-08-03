@@ -207,12 +207,37 @@ function getSettingsMenuItems(store, services, win) {
                     },
                 },
                 {
+                    label: 'Mouse Over (Zoom)',
+                    type: 'radio',
+                    checked: transparentMode === 'mouse_over_zoom',
+                    click(item) {
+                        item.checked = true;
+                        store.set(
+                            'options.transparent_mode',
+                            'mouse_over_zoom'
+                        );
+                        win.setOpacity(1);
+                    },
+                },
+                {
                     label: 'Mouse Out',
                     type: 'radio',
                     checked: transparentMode === 'mouse_out',
                     click(item) {
                         item.checked = true;
                         store.set('options.transparent_mode', 'mouse_out');
+                        if (store.get('options.transparency')) {
+                            win.setOpacity(store.get('options.opacity', 0.3));
+                        }
+                    },
+                },
+                {
+                    label: 'Mouse Out (Zoom)',
+                    type: 'radio',
+                    checked: transparentMode === 'mouse_out_zoom',
+                    click(item) {
+                        item.checked = true;
+                        store.set('options.transparent_mode', 'mouse_out_zoom');
                         if (store.get('options.transparency')) {
                             win.setOpacity(store.get('options.opacity', 0.3));
                         }
