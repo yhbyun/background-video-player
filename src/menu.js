@@ -348,15 +348,15 @@ export function getTrayMenu(store, services, win) {
                 },
             },
             {
-                label: 'Load Video',
+                label: 'Open Location',
                 click() {
-                    loadVideoUrl(win);
+                    loadPageUrl(win);
                 },
             },
             {
-                label: 'Load Page',
+                label: 'Load Video',
                 click() {
-                    loadPageUrl(win);
+                    loadVideoUrl(win);
                 },
             },
             { type: 'separator' },
@@ -398,11 +398,18 @@ export function getApplicationMenu(store, services, win, app) {
             ],
         },
         {
-            label: 'Services',
-            submenu: servicesMenuItems.concat([
+            label: 'File',
+            submenu: [
                 {
-                    label: 'Custom Url',
+                    label: 'Open File...',
                     accelerator: 'CmdOrCtrl+O',
+                    click() {
+                        openFile(win);
+                    },
+                },
+                {
+                    label: 'Open Location...',
+                    accelerator: 'CmdOrCtrl+L',
                     click() {
                         prompt(
                             {
@@ -430,7 +437,17 @@ export function getApplicationMenu(store, services, win, app) {
                             .catch(console.error);
                     },
                 },
-            ]),
+                {
+                    label: 'Load Video',
+                    click() {
+                        loadVideoUrl(win);
+                    },
+                },
+            ],
+        },
+        {
+            label: 'Services',
+            submenu: servicesMenuItems,
         },
         {
             label: 'Settings',
