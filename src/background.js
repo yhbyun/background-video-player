@@ -267,20 +267,33 @@ ipcMain.handle('getStoreValue', (event, ...args) => {
     return store.get(args[0], args[1]);
 });
 
-ipcMain.on('mouseOver', (event, args) => {
+ipcMain.on('mouseEnter', (event, args) => {
     if (store.get('options.transparency')) {
         const opacity = store.get('options.opacity', 0.3);
 
         switch (store.get('options.transparent_mode')) {
-            case 'always':
-                break;
-
             case 'mouse_over':
-                win.setOpacity(args === 'over' ? opacity : 1);
+                win.setOpacity(opacity);
                 break;
 
             case 'mouse_out':
-                win.setOpacity(args === 'over' ? 1 : opacity);
+                win.setOpacity(1);
+                break;
+        }
+    }
+});
+
+ipcMain.on('mouseLeave', (event, args) => {
+    if (store.get('options.transparency')) {
+        const opacity = store.get('options.opacity', 0.3);
+
+        switch (store.get('options.transparent_mode')) {
+            case 'mouse_over':
+                win.setOpacity(1);
+                break;
+
+            case 'mouse_out':
+                win.setOpacity(opacity);
                 break;
         }
     }
