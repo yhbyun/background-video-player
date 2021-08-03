@@ -190,7 +190,7 @@ function getSettingsMenuItems(store, services, win) {
                     checked: transparentMode === 'always',
                     click(item) {
                         item.checked = true;
-                        store.set('options.transparent_mode', 'mouse_over');
+                        store.set('options.transparent_mode', 'always');
                         if (store.get('options.transparency')) {
                             win.setOpacity(store.get('options.opacity', 0.3));
                         }
