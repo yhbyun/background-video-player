@@ -14,9 +14,11 @@ function getServiceMenuItems(store, services, win) {
             label: service.name,
             visible: !service.hidden,
             click() {
-                console.log('Changing URL To: ' + service.url);
-                win.loadURL(service.url);
-                win.send('run-loader', service);
+                win.webContents.send('changeMode', {
+                    name: 'browser',
+                    url: service.url,
+                });
+                win.webContents.send('run-loader', service);
             },
         }));
 
@@ -390,13 +392,13 @@ export function getTrayMenu(store, services, win) {
             {
                 label: 'Play',
                 click() {
-                    win.send('play-control', 'play');
+                    win.webContents.send('play-control', 'play');
                 },
             },
             {
                 label: 'Pause',
                 click() {
-                    win.send('play-control', 'pause');
+                    win.webContents.send('play-control', 'pause');
                 },
             },
             { type: 'separator' },
@@ -549,7 +551,7 @@ function openFile(win) {
             let canceled = result.canceled;
             let filePaths = result.filePaths;
             if (!canceled && win && filePaths.length > 0) {
-                win.send('openFile', filePaths[0]);
+                win.webContents.send('openFile', filePaths[0]);
             }
         });
 }
@@ -572,7 +574,7 @@ function loadVideoUrl(win) {
                 let playParams = {};
                 playParams.type = isYoutubeUrl(r) ? 'youtube' : 'native';
                 playParams.videoSource = r;
-                win.send('fileSelected', playParams);
+                win.webContents.send('fileSelected', playParams);
             }
         })
         .catch(console.error);
@@ -591,10 +593,12 @@ function loadPageUrl(win) {
         },
         win
     )
-        .then((r) => {
-            if (r) {
-                console.log('Changing URL To: ' + r);
-                win.loadURL(r);
+        .then((url) => {
+            if (url) {
+                win.webContents.send('changeMode', {
+                    name: 'browser',
+                    url: url,
+                });
             }
         })
         .catch(console.error);

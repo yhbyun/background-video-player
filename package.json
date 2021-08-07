@@ -23,12 +23,14 @@
     "jsonfile": "^6.1.0",
     "video.js": "^7.13.3",
     "videojs-youtube": "^2.6.1",
-    "vue": "^2.6.14"
+    "vue": "^2.6.14",
+    "vue-router": "^3.5.2"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~4.5.0",
     "@vue/cli-plugin-eslint": "~4.5.0",
     "@vue/cli-service": "~4.5.0",
+    "autoprefixer": "^9",
     "babel-eslint": "^10.1.0",
     "electron": "^13.1.7",
     "electron-devtools-installer": "^3.2.0",
@@ -36,28 +38,11 @@
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^3.4.0",
     "eslint-plugin-vue": "^6.2.2",
+    "postcss": "^7",
     "prettier": "2.3.2",
+    "tailwindcss": "npm:@tailwindcss/postcss7-compat",
     "vue-cli-plugin-electron-builder": "~2.1.1",
     "vue-template-compiler": "^2.6.11"
-  },
-  "eslintConfig": {
-    "root": true,
-    "env": {
-      "node": true
-    },
-    "extends": [
-      "plugin:vue/essential",
-      "eslint:recommended"
-    ],
-    "rules": {},
-    "parserOptions": {
-      "parser": "babel-eslint"
-    }
-  },
-  "postcss": {
-    "plugins": {
-      "autoprefixer": {}
-    }
   },
   "browserslist": [
     "> 1%",
