@@ -35,6 +35,8 @@ let tray;
 let isRendererReady = false;
 let defaultUserAgent;
 let orgBounds;
+let resizing = false,
+    inZoom = false;
 
 const store = new Store();
 
@@ -186,6 +188,12 @@ function createWindow() {
         }
     });
 
+    win.on('resized', () => {
+        if (resizing) {
+            resizing = false;
+        }
+    });
+
     win.on('closed', () => {
         win = null;
     });
@@ -271,95 +279,11 @@ ipcMain.handle('getStoreValue', (event, ...args) => {
 });
 
 ipcMain.on('mouseEnter', (event, args) => {
-    console.log('mouseenter');
-    if (store.get('options.transparency')) {
-        const opacity = store.get('options.opacity', 0.3);
-
-        if (
-            ['mouse_over_zoom', 'mouse_out_zoom'].indexOf(
-                store.get('options.transparent_mode')
-            ) >= 0
-        ) {
-            const { width, height } = screen.getPrimaryDisplay().workAreaSize;
-            const bounds = win.getBounds();
-            orgBounds = Object.assign({}, bounds);
-
-            if (bounds.x && bounds.x + bounds.width * 2 > width) {
-                bounds.x -= bounds.width;
-                if (bounds.x < 0) bounds.x = 0;
-            }
-
-            if (bounds.y && bounds.y + bounds.height * 2 > height) {
-                bounds.y -= bounds.height;
-                if (bounds.y < 0) bounds.y = 0;
-            }
-
-            bounds.width += bounds.width;
-            bounds.height += bounds.height;
-
-            if (bounds.width > width) bounds.width = width;
-            if (bounds.height > height) bounds.height = height;
-
-            win.setBounds(bounds, false);
-        }
-
-        switch (store.get('options.transparent_mode')) {
-            case 'mouse_over':
-            case 'mouse_over_zoom':
-                win.setOpacity(opacity);
-                break;
-
-            case 'mouse_out':
-            case 'mouse_out_zoom':
-                win.setOpacity(1);
-                break;
-        }
-    }
+    mouseEnter();
 });
 
 ipcMain.on('mouseLeave', (event, args) => {
-    console.log('mouseleave');
-
-    // Check that the mouse is outside the window
-    const { x, y } = screen.getCursorScreenPoint();
-    const bounds = win.getBounds();
-
-    // console.log(x, y);
-    // console.log(bounds);
-
-    if (
-        x >= bounds.x &&
-        y >= bounds.y &&
-        x < bounds.x + bounds.width &&
-        y < bounds.y + bounds.height
-    ) {
-        console.log("Ignore mosueleave. It's wrong.");
-        return;
-    }
-
-    if (store.get('options.transparency')) {
-        const opacity = store.get('options.opacity', 0.3);
-
-        if (
-            ['mouse_over_zoom', 'mouse_out_zoom'].indexOf(
-                store.get('options.transparent_mode')
-            ) >= 0
-        ) {
-            win.setBounds(orgBounds, false);
-        }
-
-        switch (store.get('options.transparent_mode')) {
-            case 'mouse_over':
-            case 'mouse_over_zoom':
-                win.setOpacity(1);
-                break;
-
-            case 'mouse_out':
-            case 'mouse_out_zoom':
-                win.setOpacity(opacity);
-                break;
-        }
-    }
+    mouseLeave();
 });
 
 // Exit cleanly on request from parent process in development mode.
@@ -445,4 +369,106 @@ function onVideoFileSeleted(videoFilePath) {
 function broswerWindowDomReady() {
     console.log('broswerWindowDomReady');
     // win.webContents.executeJavaScript(headerScript);
+}
+
+function isMouseOverWindow() {
+    // Check that the mouse is over the window
+    const { x, y } = screen.getCursorScreenPoint();
+    const bounds = win.getBounds();
+
+    // console.log(x, y);
+    // console.log(bounds);
+
+    return (
+        x >= bounds.x &&
+        y >= bounds.y &&
+        x < bounds.x + bounds.width &&
+        y < bounds.y + bounds.height
+    );
+}
+
+function mouseEnter() {
+    console.log('mouseenter', resizing, inZoom);
+    if (store.get('options.transparency') && !resizing && !inZoom) {
+        const opacity = store.get('options.opacity', 0.3);
+
+        if (
+            ['mouse_over_zoom', 'mouse_out_zoom'].indexOf(
+                store.get('options.transparent_mode')
+            ) >= 0
+        ) {
+            const { width, height } = screen.getPrimaryDisplay().workAreaSize;
+            const bounds = win.getBounds();
+            orgBounds = Object.assign({}, bounds);
+
+            if (bounds.x && bounds.x + bounds.width * 2 > width) {
+                bounds.x -= bounds.width;
+                if (bounds.x < 0) bounds.x = 0;
+            }
+
+            if (bounds.y && bounds.y + bounds.height * 2 > height) {
+                bounds.y -= bounds.height;
+                if (bounds.y < 0) bounds.y = 0;
+            }
+
+            bounds.width += bounds.width;
+            bounds.height += bounds.height;
+
+            if (bounds.width > width) bounds.width = width;
+            if (bounds.height > height) bounds.height = height;
+
+            resizing = true;
+            inZoom = true;
+            win.setBounds(bounds, true);
+        }
+
+        switch (store.get('options.transparent_mode')) {
+            case 'mouse_over':
+            case 'mouse_over_zoom':
+                win.setOpacity(opacity);
+                break;
+
+            case 'mouse_out':
+            case 'mouse_out_zoom':
+                win.setOpacity(1);
+                break;
+        }
+    }
+}
+
+function mouseLeave() {
+    console.log('mouseleave', resizing, inZoom);
+
+    if (resizing || !inZoom) return;
+
+    if (isMouseOverWindow()) {
+        console.log("Ignore mosueleave. It's wrong.");
+        return;
+    }
+
+    if (store.get('options.transparency')) {
+        const opacity = store.get('options.opacity', 0.3);
+
+        if (
+            ['mouse_over_zoom', 'mouse_out_zoom'].indexOf(
+                store.get('options.transparent_mode')
+            ) >= 0
+        ) {
+            resizing = true;
+            inZoom = false;
+            win.setBounds(orgBounds, true);
+        }
+
+        switch (store.get('options.transparent_mode')) {
+            case 'mouse_over':
+            case 'mouse_over_zoom':
+                win.setOpacity(1);
+                break;
+
+            case 'mouse_out':
+            case 'mouse_out_zoom':
+                win.setOpacity(opacity);
+                break;
+        }
+    }
 }
