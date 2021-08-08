@@ -5,8 +5,9 @@ module.exports = {
     pluginOptions: {
         electronBuilder: {
             preload: {
-                preload: 'src/preload.js',
-                'client-header': 'src/client-header.js',
+                // preload: 'src/preload.js',
+                // 'client-header': 'src/client-header.js',
+                'webview-inject': 'public/webview-inject.js',
             },
             nodeIntegration: true,
             // List native deps here if they don't work

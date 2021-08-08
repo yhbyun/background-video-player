@@ -22,10 +22,10 @@ import fs from 'fs';
 
 const isDevelopment = process.env.NODE_ENV !== 'production';
 
-const headerScript = fs.readFileSync(
-    path.join(__dirname, 'client-header.js'),
-    'utf8'
-);
+// const headerScript = fs.readFileSync(
+//     path.join(__dirname, 'client-header.js'),
+//     'utf8'
+// );
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -58,7 +58,7 @@ function createWindow() {
             enableRemoteModule: true,
             webSecurity: false,
             webviewTag: true,
-            preload: path.join(__dirname, 'preload.js'),
+            // preload: path.join(__dirname, 'preload.js'),
         },
     });
 
@@ -271,6 +271,7 @@ ipcMain.handle('getStoreValue', (event, ...args) => {
 });
 
 ipcMain.on('mouseEnter', (event, args) => {
+    console.log('mouseenter');
     if (store.get('options.transparency')) {
         const opacity = store.get('options.opacity', 0.3);
 
@@ -317,6 +318,25 @@ ipcMain.on('mouseEnter', (event, args) => {
 });
 
 ipcMain.on('mouseLeave', (event, args) => {
+    console.log('mouseleave');
+
+    // Check that the mouse is outside the window
+    const { x, y } = screen.getCursorScreenPoint();
+    const bounds = win.getBounds();
+
+    // console.log(x, y);
+    // console.log(bounds);
+
+    if (
+        x >= bounds.x &&
+        y >= bounds.y &&
+        x < bounds.x + bounds.width &&
+        y < bounds.y + bounds.height
+    ) {
+        console.log("Ignore mosueleave. It's wrong.");
+        return;
+    }
+
     if (store.get('options.transparency')) {
         const opacity = store.get('options.opacity', 0.3);
 
@@ -423,5 +443,6 @@ function onVideoFileSeleted(videoFilePath) {
 }
 
 function broswerWindowDomReady() {
-    win.webContents.executeJavaScript(headerScript);
+    console.log('broswerWindowDomReady');
+    // win.webContents.executeJavaScript(headerScript);
 }

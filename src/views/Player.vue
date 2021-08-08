@@ -4,6 +4,8 @@
             id="video-container"
             ref="videoContainer"
             v-show="mode === 'video'"
+            @mouseenter="mouseEnter"
+            @mouseleave="mouseLeave"
         >
             <video-player
                 class="vjs-custom-skin"
@@ -15,6 +17,7 @@
             id="wv-browser"
             class="w-screen h-screen"
             :src="webviewUrl"
+            :preload="preload"
             v-show="mode === 'browser'"
         />
         <div class="loader" v-show="isLoading">
@@ -27,7 +30,7 @@
 <script>
 /* global __static */
 
-import { ipcRenderer } from 'electron';
+import { ipcRenderer, remote } from 'electron';
 import 'videojs-youtube';
 import '../StreamPlayTech';
 import path from 'path';
@@ -56,6 +59,7 @@ export default {
             mode: 'video',
             webviewUrl: '',
             isLoading: false,
+            preload: 'file://' + path.join(__static, 'webview-inject.js'),
         };
     },
     computed: {
@@ -65,7 +69,17 @@ export default {
     },
     mounted() {
         var wvBrowser = document.getElementById('wv-browser');
-        wvBrowser.addEventListener('dom-ready', () => (this.isLoading = false));
+        wvBrowser.addEventListener('dom-ready', () => {
+            console.log('wvBrowser dom-ready');
+            this.isLoading = false;
+
+            if (
+                remote.process.env.NODE_ENV &&
+                remote.process.env.NODE_ENV !== 'production'
+            ) {
+                wvBrowser.openDevTools();
+            }
+        });
 
         document.onkeydown = (event) => {
             console.log('onkeypress', event);
@@ -121,7 +135,7 @@ export default {
                         break;
 
                     case 'youtube':
-                        optioptionson.techOrder = ['youtube'];
+                        options.techOrder = ['youtube'];
                         message.type = 'video/youtube';
                         break;
                 }
@@ -192,6 +206,14 @@ export default {
 
                 this.isLoading = true;
             }
+        },
+        mouseEnter() {
+            console.log('mouseEnter');
+            ipcRenderer.send('mouseEnter');
+        },
+        mouseLeave() {
+            console.log('mouseLeave');
+            ipcRenderer.send('mouseLeave');
         },
     },
 };
