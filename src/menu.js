@@ -282,6 +282,17 @@ function getSettingsMenuItems(store, services, win) {
             },
         },
         {
+            label: 'Sticky',
+            id: 'sticky',
+            type: 'checkbox',
+            checked: store.get('options.sticky', false),
+            click(e) {
+                setCheckboxMenuChecked('sticky', e.checked);
+                store.set('options.sticky', e.checked);
+                win.webContents.send('toggleSticky', e.checked);
+            },
+        },
+        {
             label: 'Background Play',
             id: 'background-play',
             type: 'checkbox',

@@ -34,7 +34,7 @@ let httpServer;
 let tray;
 let isRendererReady = false;
 let defaultUserAgent;
-let orgBounds;
+let orgBounds, stickyBounds;
 let resizing = false,
     inZoom = false;
 
@@ -80,6 +80,8 @@ function createWindow() {
     } else {
         win.maximize();
     }
+
+    store.set('options.sticky', false);
 
     // Detect and update version
     if (!store.get('version')) {
@@ -179,7 +181,9 @@ function createWindow() {
         if (win) {
             store.set('options.windowDetails', {
                 position: win.getPosition(),
-                size: win.getSize(),
+                size: isStickyMode()
+                    ? [orgBounds.width, orgBounds.height]
+                    : win.getSize(),
             });
         } else {
             console.error(
@@ -286,6 +290,10 @@ ipcMain.on('mouseLeave', (event, args) => {
     mouseLeave();
 });
 
+ipcMain.on('toggleSticky', (event, enable) => {
+    enable ? activateSticky() : deactivateSticky();
+});
+
 // Exit cleanly on request from parent process in development mode.
 if (isDevelopment) {
     if (process.platform === 'win32') {
@@ -388,13 +396,17 @@ function isMouseOverWindow() {
 }
 
 function mouseEnter() {
-    console.log('mouseenter', resizing, inZoom);
+    console.log('mouseenter', 'resizing:' + resizing, 'inZoom:' + inZoom);
+
+    if (isStickyMode()) {
+        handleMouseEnterOnSticky();
+        return;
+    }
+
     if (
         store.get('options.transparency') &&
         (!isTransparentZoomEnabled() || (!resizing && !inZoom))
     ) {
-        const opacity = store.get('options.opacity', 0.3);
-
         if (
             ['mouse_over_zoom', 'mouse_out_zoom'].indexOf(
                 store.get('options.transparent_mode')
@@ -425,22 +437,17 @@ function mouseEnter() {
             win.setBounds(bounds, true);
         }
 
-        switch (store.get('options.transparent_mode')) {
-            case 'mouse_over':
-            case 'mouse_over_zoom':
-                win.setOpacity(opacity);
-                break;
-
-            case 'mouse_out':
-            case 'mouse_out_zoom':
-                win.setOpacity(1);
-                break;
-        }
+        setWindowOpacity(true);
     }
 }
 
 function mouseLeave() {
-    console.log('mouseleave', resizing, inZoom);
+    console.log('mouseleave', 'resizing:' + resizing, 'inZoom:' + inZoom);
+
+    if (isStickyMode()) {
+        handleMouseLeaveOnSticky();
+        return;
+    }
 
     if (isTransparentZoomEnabled() && (resizing || !inZoom)) return;
 
@@ -450,25 +457,13 @@ function mouseLeave() {
     }
 
     if (store.get('options.transparency')) {
-        const opacity = store.get('options.opacity', 0.3);
-
         if (isTransparentZoomEnabled()) {
             resizing = true;
             inZoom = false;
             win.setBounds(orgBounds, true);
         }
 
-        switch (store.get('options.transparent_mode')) {
-            case 'mouse_over':
-            case 'mouse_over_zoom':
-                win.setOpacity(1);
-                break;
-
-            case 'mouse_out':
-            case 'mouse_out_zoom':
-                win.setOpacity(opacity);
-                break;
-        }
+        setWindowOpacity(false);
     }
 }
 
@@ -478,4 +473,68 @@ function isTransparentZoomEnabled() {
             store.get('options.transparent_mode')
         ) >= 0
     );
+}
+
+function setWindowOpacity(hover) {
+    if (store.get('options.transparency')) {
+        const opacity = store.get('options.opacity', 0.3);
+
+        switch (store.get('options.transparent_mode')) {
+            case 'mouse_over':
+            case 'mouse_over_zoom':
+                hover ? win.setOpacity(opacity) : win.setOpacity(1);
+                break;
+
+            case 'mouse_out':
+            case 'mouse_out_zoom':
+                hover ? win.setOpacity(1) : win.setOpacity(opacity);
+                break;
+        }
+    }
+}
+
+function isStickyMode() {
+    return store.get('options.sticky', false);
+}
+
+function activateSticky() {
+    stickyBounds = win.getBounds();
+    orgBounds = Object.assign({}, stickyBounds);
+
+    stickyBounds.width = 30;
+
+    resizing = true;
+    inZoom = false;
+    win.setBounds(stickyBounds, true);
+    setWindowOpacity(false);
+}
+
+function deactivateSticky() {
+    resizing = true;
+    inZoom = true;
+    win.setBounds(orgBounds, true);
+    setWindowOpacity(false);
+}
+
+function handleMouseEnterOnSticky() {
+    if (resizing || inZoom) return;
+
+    resizing = true;
+    inZoom = true;
+    win.setBounds(orgBounds, true);
+    setWindowOpacity(true);
+}
+
+function handleMouseLeaveOnSticky() {
+    if (resizing || !inZoom) return;
+
+    if (isMouseOverWindow()) {
+        console.log("Ignore mosueleave. It's wrong.");
+        return;
+    }
+
+    resizing = true;
+    inZoom = false;
+    win.setBounds(stickyBounds, true);
+    setWindowOpacity(false);
 }
