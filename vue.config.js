@@ -23,6 +23,11 @@ module.exports = {
             chainWebpackRendererProcess: (config) => {
                 // Chain webpack config for electron renderer process only (won't be applied to web builds)
             },
+            builderOptions: {
+                electronDownload: {
+                    mirror: 'https://github.com/castlabs/electron-releases/releases/download/v',
+                },
+            },
         },
     },
 };
