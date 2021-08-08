@@ -179,6 +179,10 @@ export default {
             }
         });
 
+        ipcRenderer.on('toggleSticky', (e, enable) => {
+            ipcRenderer.send('toggleSticky', enable);
+        });
+
         ipcRenderer.send('ipcRendererReady', 'true');
     },
     watch: {
