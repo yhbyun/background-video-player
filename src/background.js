@@ -389,7 +389,10 @@ function isMouseOverWindow() {
 
 function mouseEnter() {
     console.log('mouseenter', resizing, inZoom);
-    if (store.get('options.transparency') && !resizing && !inZoom) {
+    if (
+        store.get('options.transparency') &&
+        (!isTransparentZoomEnabled() || (!resizing && !inZoom))
+    ) {
         const opacity = store.get('options.opacity', 0.3);
 
         if (
@@ -439,7 +442,7 @@ function mouseEnter() {
 function mouseLeave() {
     console.log('mouseleave', resizing, inZoom);
 
-    if (resizing || !inZoom) return;
+    if (isTransparentZoomEnabled() && (resizing || !inZoom)) return;
 
     if (isMouseOverWindow()) {
         console.log("Ignore mosueleave. It's wrong.");
@@ -449,11 +452,7 @@ function mouseLeave() {
     if (store.get('options.transparency')) {
         const opacity = store.get('options.opacity', 0.3);
 
-        if (
-            ['mouse_over_zoom', 'mouse_out_zoom'].indexOf(
-                store.get('options.transparent_mode')
-            ) >= 0
-        ) {
+        if (isTransparentZoomEnabled()) {
             resizing = true;
             inZoom = false;
             win.setBounds(orgBounds, true);
@@ -471,4 +470,12 @@ function mouseLeave() {
                 break;
         }
     }
+}
+
+function isTransparentZoomEnabled() {
+    return (
+        ['mouse_over_zoom', 'mouse_out_zoom'].indexOf(
+            store.get('options.transparent_mode')
+        ) >= 0
+    );
 }
