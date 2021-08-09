@@ -179,8 +179,8 @@ export default {
             }
         });
 
-        ipcRenderer.on('toggleSticky', (e, enable) => {
-            ipcRenderer.send('toggleSticky', enable);
+        ipcRenderer.on('toggleSidedock', (e, enable) => {
+            ipcRenderer.send('toggleSidedock', enable);
         });
 
         ipcRenderer.send('ipcRendererReady', 'true');

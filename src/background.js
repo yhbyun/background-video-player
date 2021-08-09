@@ -34,7 +34,7 @@ let httpServer;
 let tray;
 let isRendererReady = false;
 let defaultUserAgent;
-let orgBounds, stickyBounds;
+let orgBounds;
 let resizing = false,
     inZoom = false;
 
@@ -81,7 +81,7 @@ function createWindow() {
         win.maximize();
     }
 
-    store.set('options.sticky', false);
+    store.set('options.sidedock', false);
 
     // Detect and update version
     if (!store.get('version')) {
@@ -180,8 +180,10 @@ function createWindow() {
         // If enabled store the window details so they can be restored upon restart
         if (win) {
             store.set('options.windowDetails', {
-                position: win.getPosition(),
-                size: isStickyMode()
+                position: isSidedockMode
+                    ? [orgBounds.x, orgBounds.y]
+                    : win.getPosition(),
+                size: isSidedockMode()
                     ? [orgBounds.width, orgBounds.height]
                     : win.getSize(),
             });
@@ -195,6 +197,8 @@ function createWindow() {
     win.on('resized', () => {
         if (resizing) {
             resizing = false;
+        } else if (isSidedockMode()) {
+            orgBounds = Object.assign({}, win.getBounds());
         }
     });
 
@@ -290,8 +294,8 @@ ipcMain.on('mouseLeave', (event, args) => {
     mouseLeave();
 });
 
-ipcMain.on('toggleSticky', (event, enable) => {
-    enable ? activateSticky() : deactivateSticky();
+ipcMain.on('toggleSidedock', (event, enable) => {
+    enable ? activateSidedock() : deactivateSidedock();
 });
 
 // Exit cleanly on request from parent process in development mode.
@@ -398,8 +402,8 @@ function isMouseOverWindow() {
 function mouseEnter() {
     console.log('mouseenter', 'resizing:' + resizing, 'inZoom:' + inZoom);
 
-    if (isStickyMode()) {
-        handleMouseEnterOnSticky();
+    if (isSidedockMode()) {
+        handleMouseEnterOnSidedock();
         return;
     }
 
@@ -444,8 +448,8 @@ function mouseEnter() {
 function mouseLeave() {
     console.log('mouseleave', 'resizing:' + resizing, 'inZoom:' + inZoom);
 
-    if (isStickyMode()) {
-        handleMouseLeaveOnSticky();
+    if (isSidedockMode()) {
+        handleMouseLeaveOnSidedock();
         return;
     }
 
@@ -493,39 +497,41 @@ function setWindowOpacity(hover) {
     }
 }
 
-function isStickyMode() {
-    return store.get('options.sticky', false);
+function isSidedockMode() {
+    return store.get('options.sidedock', false);
 }
 
-function activateSticky() {
-    stickyBounds = win.getBounds();
-    orgBounds = Object.assign({}, stickyBounds);
-
-    stickyBounds.width = 30;
+function activateSidedock() {
+    orgBounds = Object.assign({}, win.getBounds());
 
     resizing = true;
     inZoom = false;
-    win.setBounds(stickyBounds, true);
+    win.setBounds({ x: 0, width: 30 }, true);
     setWindowOpacity(false);
 }
 
-function deactivateSticky() {
+function deactivateSidedock() {
     resizing = true;
     inZoom = true;
     win.setBounds(orgBounds, true);
     setWindowOpacity(false);
 }
 
-function handleMouseEnterOnSticky() {
+function handleMouseEnterOnSidedock() {
     if (resizing || inZoom) return;
 
     resizing = true;
     inZoom = true;
-    win.setBounds(orgBounds, true);
+    win.setBounds(
+        {
+            width: orgBounds.width,
+        },
+        true
+    );
     setWindowOpacity(true);
 }
 
-function handleMouseLeaveOnSticky() {
+function handleMouseLeaveOnSidedock() {
     if (resizing || !inZoom) return;
 
     if (isMouseOverWindow()) {
@@ -535,6 +541,6 @@ function handleMouseLeaveOnSticky() {
 
     resizing = true;
     inZoom = false;
-    win.setBounds(stickyBounds, true);
+    win.setBounds({ width: 30 }, true);
     setWindowOpacity(false);
 }
