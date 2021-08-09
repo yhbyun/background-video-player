@@ -282,14 +282,14 @@ function getSettingsMenuItems(store, services, win) {
             },
         },
         {
-            label: 'Sticky',
-            id: 'sticky',
+            label: 'Side Dock',
+            id: 'sidedock',
             type: 'checkbox',
-            checked: store.get('options.sticky', false),
+            checked: store.get('options.sidedock', false),
             click(e) {
-                setCheckboxMenuChecked('sticky', e.checked);
-                store.set('options.sticky', e.checked);
-                win.webContents.send('toggleSticky', e.checked);
+                setCheckboxMenuChecked('sidedock', e.checked);
+                store.set('options.sidedock', e.checked);
+                win.webContents.send('toggleSidedock', e.checked);
             },
         },
         {
