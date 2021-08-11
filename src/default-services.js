@@ -85,4 +85,11 @@ module.exports = [
         color: '#ffe600',
         permissions: [],
     },
+    {
+        name: 'Ritmo Romantica',
+        logo: '',
+        url: 'https://ritmoromantica.pe/radioenvivo',
+        color: '#ffe600',
+        permissions: [],
+    },
 ];

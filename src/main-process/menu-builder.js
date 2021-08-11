@@ -1,9 +1,22 @@
-import { Menu, dialog } from 'electron';
+import { app, Menu, dialog } from 'electron';
 import prompt from 'electron-prompt';
+import config from './config';
+import status from './status';
+import { logManager } from './log-manager';
+import WindowManager, { sendToMainWindow } from './window-manager';
+import Utils from '../common/utils';
+
+const macOS = process.platform === 'darwin';
+let logger = logManager.getLogger('MenuBuilder');
 
 let trayMenu = null;
 
-function getServiceMenuItems(store, services, win) {
+const setCheckboxMenuChecked = (menuId, checked) => {
+    Menu.getApplicationMenu().getMenuItemById(menuId).checked = checked;
+    trayMenu.getMenuItemById(menuId).checked = checked;
+};
+
+const getServiceMenuItems = (services) => {
     let servicesMenuItems = [];
     let defaultServiceMenuItems = [];
     let enabledServicesMenuItems = [];
@@ -14,11 +27,11 @@ function getServiceMenuItems(store, services, win) {
             label: service.name,
             visible: !service.hidden,
             click() {
-                win.webContents.send('changeMode', {
+                sendToMainWindow('changeMode', {
                     name: 'browser',
                     url: service.url,
                 });
-                win.webContents.send('run-loader', service);
+                sendToMainWindow('run-loader', service);
             },
         }));
 
@@ -26,14 +39,15 @@ function getServiceMenuItems(store, services, win) {
         defaultServiceMenuItems = services.map((service) => ({
             label: service.name,
             type: 'checkbox',
-            checked: store.get('options.defaultService')
-                ? store.get('options.defaultService') == service.name
+            checked: config.persisted.get('options.defaultService')
+                ? config.persisted.get('options.defaultService') ===
+                  service.name
                 : false,
             click(e) {
                 e.menu.items.forEach((e) => {
                     if (!(e.label === service.name)) e.checked = false;
                 });
-                store.set('options.defaultService', service.name);
+                config.persisted.set('options.defaultService', service.name);
             },
         }));
 
@@ -44,21 +58,21 @@ function getServiceMenuItems(store, services, win) {
             checked: !service.hidden,
             click() {
                 if (service._defaultService) {
-                    let currServices = store.get('services');
+                    let currServices = config.persisted.get('services');
                     currServices.push({
                         name: service.name,
                         hidden: !service.hidden,
                     });
                     services = currServices;
-                    store.set('services', currServices);
+                    config.persisted.set('services', currServices);
                 } else {
-                    let currServices = store.get('services');
+                    let currServices = config.persisted.get('services');
                     let currService = currServices.find(
                         (s) => service.name == s.name
                     );
                     currService.hidden = service.hidden ? undefined : true;
                     services = currServices;
-                    store.set('services', currServices);
+                    config.persisted.set('services', currServices);
                 }
             },
         }));
@@ -69,14 +83,24 @@ function getServiceMenuItems(store, services, win) {
         defaultServiceMenuItems,
         enabledServicesMenuItems,
     };
-}
+};
 
-function getSettingsMenuItems(store, services, win) {
-    const opacity = store.get('options.opacity', 0.3);
-    const transparentMode = store.get('options.transparent_mode', 'always');
+const getSettingsMenuItems = (services) => {
+    const opacity = config.persisted.get('options.opacity', 0.3);
+    const transparentMode = config.persisted.get(
+        'options.transparent_mode',
+        'always'
+    );
 
     const { defaultServiceMenuItems, enabledServicesMenuItems } =
-        getServiceMenuItems(store, services, win);
+        getServiceMenuItems(services);
+
+    const setOpacity = (item, opacity) => {
+        item.checked = true;
+        config.persisted.set('options.opacity', opacity);
+        WindowManager.mainWindow.setOpacity(opacity);
+        A;
+    };
 
     return [
         {
@@ -86,14 +110,13 @@ function getSettingsMenuItems(store, services, win) {
                     label: 'Enabled',
                     id: 'transparency',
                     type: 'checkbox',
-                    accelerator:
-                        process.platform === 'darwin'
-                            ? 'Command+Ctrl+Shift+O'
-                            : 'Ctrl+T',
-                    checked: store.get('options.transparency', true),
+                    accelerator: macOS ? 'Command+Ctrl+Shift+O' : 'Ctrl+T',
+                    checked: config.persisted.get('options.transparency', true),
                     click(e) {
-                        store.set('options.transparency', e.checked);
-                        e.checked ? win.setOpacity(opacity) : win.setOpacity(1);
+                        config.persisted.set('options.transparency', e.checked);
+                        e.checked
+                            ? WindowManager.mainWindow.setOpacity(opacity)
+                            : WindowManager.mainWindow.setOpacity(1);
 
                         setCheckboxMenuChecked('transparency', e.checked);
                         if (!e.checked)
@@ -108,7 +131,7 @@ function getSettingsMenuItems(store, services, win) {
                             type: 'radio',
                             checked: opacity === 0.1,
                             click(item) {
-                                setOpacity(win, store, item, 0.1);
+                                setOpactiry(item, 0.1);
                             },
                         },
                         {
@@ -116,7 +139,7 @@ function getSettingsMenuItems(store, services, win) {
                             type: 'radio',
                             checked: opacity === 0.2,
                             click(item) {
-                                setOpacity(win, store, item, 0.2);
+                                setOpactiry(item, 0.2);
                             },
                         },
                         {
@@ -124,7 +147,7 @@ function getSettingsMenuItems(store, services, win) {
                             type: 'radio',
                             checked: opacity === 0.3,
                             click(item) {
-                                setOpacity(win, store, item, 0.3);
+                                setOpactiry(item, 0.3);
                             },
                         },
                         {
@@ -132,7 +155,7 @@ function getSettingsMenuItems(store, services, win) {
                             type: 'radio',
                             checked: opacity === 0.4,
                             click(item) {
-                                setOpacity(win, store, item, 0.4);
+                                setOpactiry(item, 0.4);
                             },
                         },
                         {
@@ -140,7 +163,7 @@ function getSettingsMenuItems(store, services, win) {
                             type: 'radio',
                             checked: opacity === 0.5,
                             click(item) {
-                                setOpacity(win, store, item, 0.5);
+                                setOpactiry(item, 0.5);
                             },
                         },
                         {
@@ -148,7 +171,7 @@ function getSettingsMenuItems(store, services, win) {
                             type: 'radio',
                             checked: opacity === 0.6,
                             click(item) {
-                                setOpacity(win, store, item, 0.6);
+                                setOpactiry(item, 0.6);
                             },
                         },
                         {
@@ -156,7 +179,7 @@ function getSettingsMenuItems(store, services, win) {
                             type: 'radio',
                             checked: opacity === 0.7,
                             click(item) {
-                                setOpacity(win, store, item, 0.7);
+                                setOpactiry(item, 0.7);
                             },
                         },
                         {
@@ -164,7 +187,7 @@ function getSettingsMenuItems(store, services, win) {
                             type: 'radio',
                             checked: opacity === 0.8,
                             click(item) {
-                                setOpacity(win, store, item, 0.8);
+                                setOpactiry(item, 0.8);
                             },
                         },
                         {
@@ -172,7 +195,7 @@ function getSettingsMenuItems(store, services, win) {
                             type: 'radio',
                             checked: opacity === 0.9,
                             click(item) {
-                                setOpacity(win, store, item, 0.9);
+                                setOpactiry(item, 0.9);
                             },
                         },
                         {
@@ -180,7 +203,7 @@ function getSettingsMenuItems(store, services, win) {
                             type: 'radio',
                             checked: opacity === 1,
                             click(item) {
-                                setOpacity(win, store, item, 1);
+                                setOpactiry(item, 1);
                             },
                         },
                     ],
@@ -192,9 +215,14 @@ function getSettingsMenuItems(store, services, win) {
                     checked: transparentMode === 'always',
                     click(item) {
                         item.checked = true;
-                        store.set('options.transparent_mode', 'always');
-                        if (store.get('options.transparency')) {
-                            win.setOpacity(store.get('options.opacity', 0.3));
+                        config.persisted.set(
+                            'options.transparent_mode',
+                            'always'
+                        );
+                        if (config.persisted.get('options.transparency')) {
+                            WindowManager.mainWindow.setOpacity(
+                                config.persisted.get('options.opacity', 0.3)
+                            );
                         }
                     },
                 },
@@ -204,8 +232,11 @@ function getSettingsMenuItems(store, services, win) {
                     checked: transparentMode === 'mouse_over',
                     click(item) {
                         item.checked = true;
-                        store.set('options.transparent_mode', 'mouse_over');
-                        win.setOpacity(1);
+                        config.persisted.set(
+                            'options.transparent_mode',
+                            'mouse_over'
+                        );
+                        WindowManager.mainWindow.setOpacity(1);
                     },
                 },
                 {
@@ -214,11 +245,11 @@ function getSettingsMenuItems(store, services, win) {
                     checked: transparentMode === 'mouse_over_zoom',
                     click(item) {
                         item.checked = true;
-                        store.set(
+                        config.persisted.set(
                             'options.transparent_mode',
                             'mouse_over_zoom'
                         );
-                        win.setOpacity(1);
+                        WindowManager.mainWindow.setOpacity(1);
                     },
                 },
                 {
@@ -227,9 +258,14 @@ function getSettingsMenuItems(store, services, win) {
                     checked: transparentMode === 'mouse_out',
                     click(item) {
                         item.checked = true;
-                        store.set('options.transparent_mode', 'mouse_out');
-                        if (store.get('options.transparency')) {
-                            win.setOpacity(store.get('options.opacity', 0.3));
+                        config.persisted.set(
+                            'options.transparent_mode',
+                            'mouse_out'
+                        );
+                        if (config.persisted.get('options.transparency')) {
+                            WindowManager.mainWindow.setOpacity(
+                                config.persisted.get('options.opacity', 0.3)
+                            );
                         }
                     },
                 },
@@ -239,9 +275,14 @@ function getSettingsMenuItems(store, services, win) {
                     checked: transparentMode === 'mouse_out_zoom',
                     click(item) {
                         item.checked = true;
-                        store.set('options.transparent_mode', 'mouse_out_zoom');
-                        if (store.get('options.transparency')) {
-                            win.setOpacity(store.get('options.opacity', 0.3));
+                        config.persisted.set(
+                            'options.transparent_mode',
+                            'mouse_out_zoom'
+                        );
+                        if (config.persisted.get('options.transparency')) {
+                            WindowManager.mainWindow.setOpacity(
+                                config.persisted.get('options.opacity', 0.3)
+                            );
                         }
                     },
                 },
@@ -255,10 +296,10 @@ function getSettingsMenuItems(store, services, win) {
                 process.platform === 'darwin'
                     ? 'Command+Ctrl+Shift+A'
                     : 'Ctrl+A',
-            checked: store.get('options.alwaysOnTop', true),
+            checked: config.persisted.get('options.alwaysOnTop', true),
             click(e) {
-                store.set('options.alwaysOnTop', e.checked);
-                win.setAlwaysOnTop(e.checked);
+                config.persisted.set('options.alwaysOnTop', e.checked);
+                WindowManager.mainWindow.setAlwaysOnTop(e.checked);
                 setCheckboxMenuChecked('alwaysontop', e.checked);
                 if (!e.checked)
                     setCheckboxMenuChecked('background-play', false);
@@ -272,10 +313,10 @@ function getSettingsMenuItems(store, services, win) {
                 process.platform === 'darwin'
                     ? 'Command+Ctrl+Shift+M'
                     : 'Ctrl+M',
-            checked: store.get('options.ignoreMouseEvent', true),
+            checked: config.persisted.get('options.ignoreMouseEvent', true),
             click(e) {
-                store.set('options.ignoreMouseEvent', e.checked);
-                win.setIgnoreMouseEvents(e.checked);
+                config.persisted.set('options.ignoreMouseEvent', e.checked);
+                WindowManager.mainWindow.setIgnoreMouseEvents(e.checked);
                 setCheckboxMenuChecked('ignore-mouse-event', e.checked);
                 if (!e.checked)
                     setCheckboxMenuChecked('background-play', false);
@@ -285,11 +326,11 @@ function getSettingsMenuItems(store, services, win) {
             label: 'Side Dock',
             id: 'sidedock',
             type: 'checkbox',
-            checked: store.get('options.sidedock', false),
+            checked: config.persisted.get('options.sidedock', false),
             click(e) {
                 setCheckboxMenuChecked('sidedock', e.checked);
-                store.set('options.sidedock', e.checked);
-                win.webContents.send('toggleSidedock', e.checked);
+                config.persisted.set('options.sidedock', e.checked);
+                sendToMainWindow('toggleSidedock', e.checked);
             },
         },
         {
@@ -301,20 +342,22 @@ function getSettingsMenuItems(store, services, win) {
                     ? 'Command+Ctrl+Shift+B'
                     : 'Ctrl+B',
             checked:
-                store.get('options.transparency', true) &&
-                store.get('options.alwaysOnTop', true) &&
-                store.get('options.ignoreMouseEvent', true),
+                config.persisted.get('options.transparency', true) &&
+                config.persisted.get('options.alwaysOnTop', true) &&
+                config.persisted.get('options.ignoreMouseEvent', true),
             click(e) {
-                store.set('options.transparency', e.checked);
-                e.checked ? win.setOpacity(opacity) : win.setOpacity(1);
+                config.persisted.set('options.transparency', e.checked);
+                e.checked
+                    ? WindowManager.mainWindow.setOpacity(opacity)
+                    : WindowManager.mainWindow.setOpacity(1);
                 setCheckboxMenuChecked('transparency', e.checked);
 
-                store.set('options.alwaysOnTop', e.checked);
-                win.setAlwaysOnTop(e.checked);
+                config.persisted.set('options.alwaysOnTop', e.checked);
+                WindowManager.mainWindow.setAlwaysOnTop(e.checked);
                 setCheckboxMenuChecked('alwaysontop', e.checked);
 
-                store.set('options.ignoreMouseEvent', e.checked);
-                win.setIgnoreMouseEvents(e.checked);
+                config.persisted.set('options.ignoreMouseEvent', e.checked);
+                WindowManager.mainWindow.setIgnoreMouseEvents(e.checked);
                 setCheckboxMenuChecked('ignore-mouse-event', e.checked);
 
                 setCheckboxMenuChecked('background-play', e.checked);
@@ -328,9 +371,9 @@ function getSettingsMenuItems(store, services, win) {
                 process.platform === 'darwin'
                     ? 'Command+Ctrl+Shift+L'
                     : 'Ctrl+L',
-            checked: store.get('options.loop', false),
+            checked: config.persisted.get('options.loop', false),
             click(e) {
-                store.set('options.loop', e.checked);
+                config.persisted.set('options.loop', e.checked);
                 setCheckboxMenuChecked('loop', e.checked);
             },
         },
@@ -345,9 +388,11 @@ function getSettingsMenuItems(store, services, win) {
                         e.menu.items.forEach((e) => {
                             if (!(e.label === 'Empty Page')) e.checked = false;
                         });
-                        store.delete('options.defaultService');
+                        config.persisted.delete('options.defaultService');
                     },
-                    checked: store.get('options.defaultService') === undefined,
+                    checked:
+                        config.persisted.get('options.defaultService') ===
+                        undefined,
                 },
                 {
                     label: 'Last Opened Page',
@@ -357,72 +402,23 @@ function getSettingsMenuItems(store, services, win) {
                             if (!(e.label === 'Last Opened Page'))
                                 e.checked = false;
                         });
-                        store.set('options.defaultService', 'lastOpenedPage');
+                        config.persisted.set(
+                            'options.defaultService',
+                            'lastOpenedPage'
+                        );
                     },
                     checked:
-                        store.get('options.defaultService') ===
+                        config.persisted.get('options.defaultService') ===
                         'lastOpenedPage',
                 },
                 { type: 'separator' },
             ].concat(defaultServiceMenuItems),
         },
     ];
-}
+};
 
-function setCheckboxMenuChecked(menuId, checked) {
-    Menu.getApplicationMenu().getMenuItemById(menuId).checked = checked;
-    trayMenu.getMenuItemById(menuId).checked = checked;
-}
-
-export function getTrayMenu(store, services, win) {
-    const { servicesMenuItems } = getServiceMenuItems(store, services, win);
-
-    trayMenu = Menu.buildFromTemplate(
-        [
-            {
-                label: 'Open File',
-                click() {
-                    openFile(win);
-                },
-            },
-            {
-                label: 'Open Location',
-                click() {
-                    loadPageUrl(win);
-                },
-            },
-            {
-                label: 'Load Video',
-                click() {
-                    loadVideoUrl(win);
-                },
-            },
-            { type: 'separator' },
-            { label: 'Services', submenu: servicesMenuItems },
-            { type: 'separator' },
-            {
-                label: 'Play',
-                click() {
-                    win.webContents.send('play-control', 'play');
-                },
-            },
-            {
-                label: 'Pause',
-                click() {
-                    win.webContents.send('play-control', 'pause');
-                },
-            },
-            { type: 'separator' },
-        ]
-            .concat(getSettingsMenuItems(store, services, win))
-            .concat([{ type: 'separator' }, { role: 'quit' }])
-    );
-
-    return trayMenu;
-}
-
-export function getApplicationMenu(store, services, win, app) {
-    const { servicesMenuItems } = getServiceMenuItems(store, services, win);
+const getApplicationMenu = (services) => {
+    const { servicesMenuItems } = getServiceMenuItems(services);
 
     return Menu.buildFromTemplate([
         {
@@ -442,7 +438,7 @@ export function getApplicationMenu(store, services, win, app) {
                     label: 'Open File...',
                     accelerator: 'CmdOrCtrl+O',
                     click() {
-                        openFile(win);
+                        openFile();
                     },
                 },
                 {
@@ -458,7 +454,7 @@ export function getApplicationMenu(store, services, win, app) {
                                     placeholder: 'http://example.org',
                                 },
                             },
-                            win
+                            WindowManager.mainWindow
                         )
                             .then((inputtedURL) => {
                                 if (inputtedURL != null) {
@@ -466,10 +462,12 @@ export function getApplicationMenu(store, services, win, app) {
                                         inputtedURL = 'http://example.org';
                                     }
 
-                                    console.log(
+                                    logger.debug(
                                         'Opening Custom URL: ' + inputtedURL
                                     );
-                                    win.loadURL(inputtedURL);
+                                    WindowManager.mainWindow.loadURL(
+                                        inputtedURL
+                                    );
                                 }
                             })
                             .catch(console.error);
@@ -478,7 +476,7 @@ export function getApplicationMenu(store, services, win, app) {
                 {
                     label: 'Load Video',
                     click() {
-                        loadVideoUrl(win);
+                        loadVideoUrl();
                     },
                 },
             ],
@@ -489,7 +487,7 @@ export function getApplicationMenu(store, services, win, app) {
         },
         {
             label: 'Settings',
-            submenu: getSettingsMenuItems(store, services, win),
+            submenu: getSettingsMenuItems(services),
         },
         {
             label: 'Edit',
@@ -546,13 +544,60 @@ export function getApplicationMenu(store, services, win, app) {
             ],
         },
     ]);
-}
+};
 
-function openFile(win) {
-    win.focus();
+export const getTrayMenu = (services) => {
+    const { servicesMenuItems } = getServiceMenuItems(services);
+
+    trayMenu = Menu.buildFromTemplate(
+        [
+            {
+                label: 'Open File',
+                click() {
+                    openFile();
+                },
+            },
+            {
+                label: 'Open Location',
+                click() {
+                    loadPageUrl();
+                },
+            },
+            {
+                label: 'Load Video',
+                click() {
+                    loadVideoUrl();
+                },
+            },
+            { type: 'separator' },
+            { label: 'Services', submenu: servicesMenuItems },
+            { type: 'separator' },
+            {
+                label: 'Play',
+                click() {
+                    sendToMainWindow('play-control', 'play');
+                },
+            },
+            {
+                label: 'Pause',
+                click() {
+                    sendToMainWindow('play-control', 'pause');
+                },
+            },
+            { type: 'separator' },
+        ]
+            .concat(getSettingsMenuItems(services))
+            .concat([{ type: 'separator' }, { role: 'quit' }])
+    );
+
+    return trayMenu;
+};
+
+const openFile = () => {
+    WindowManager.mainWindow.focus();
 
     dialog
-        .showOpenDialog(win, {
+        .showOpenDialog(WindowManager.mainWindow, {
             properties: ['openFile'],
             // filters: [
             //     {name: 'Movies', extensions: ['mkv', 'avi', 'mp4', 'rmvb', 'flv', 'ogv','webm', '3gp', 'mov']},
@@ -561,13 +606,13 @@ function openFile(win) {
         .then((result) => {
             let canceled = result.canceled;
             let filePaths = result.filePaths;
-            if (!canceled && win && filePaths.length > 0) {
-                win.webContents.send('openFile', filePaths[0]);
+            if (!canceled && filePaths.length > 0) {
+                sendToMainWindow('openFile', filePaths[0]);
             }
         });
-}
+};
 
-function loadVideoUrl(win) {
+const loadVideoUrl = () => {
     prompt(
         {
             title: 'Video URL',
@@ -578,20 +623,20 @@ function loadVideoUrl(win) {
             },
             type: 'input',
         },
-        win
+        WindowManager.mainWindow
     )
         .then((r) => {
             if (r) {
                 let playParams = {};
-                playParams.type = isYoutubeUrl(r) ? 'youtube' : 'native';
+                playParams.type = Utils.isYoutubeUrl(r) ? 'youtube' : 'native';
                 playParams.videoSource = r;
-                win.webContents.send('fileSelected', playParams);
+                sendToMainWindow('fileSelected', playParams);
             }
         })
-        .catch(console.error);
-}
+        .catch(logger.error);
+};
 
-function loadPageUrl(win) {
+const loadPageUrl = () => {
     prompt(
         {
             title: 'Page URL',
@@ -602,27 +647,45 @@ function loadPageUrl(win) {
             },
             type: 'input',
         },
-        win
+        WindowManager.mainWindow
     )
         .then((url) => {
             if (url) {
-                win.webContents.send('changeMode', {
+                sendToMainWindow('changeMode', {
                     name: 'browser',
                     url: url,
                 });
             }
         })
-        .catch(console.error);
-}
+        .catch(logger.error);
+};
 
-function isYoutubeUrl(url) {
-    const regExp =
-        /^(?:https?:\/\/)?(?:m\.|www\.)?(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))((\w|-){11})(?:\S+)?$/;
-    return !!url.match(regExp);
-}
+export default class MenuBuilder {
+    buildMenu() {
+        if (config.isDev) {
+            this.setupDevelopmentEnvironment();
+        }
 
-function setOpacity(win, store, item, opacity) {
-    item.checked = true;
-    store.set('options.opacity', opacity);
-    win.setOpacity(opacity);
+        const menu = getApplicationMenu(status.services);
+        Menu.setApplicationMenu(menu);
+
+        return menu;
+    }
+
+    setupDevelopmentEnvironment() {
+        WindowManager.mainWindow.openDevTools();
+
+        WindowManager.mainWindow.webContents.on('context-menu', (e, props) => {
+            const { x, y } = props;
+            const menu = Menu.buildFromTemplate([
+                {
+                    label: 'Inspect element',
+                    click: () => {
+                        WindowManager.mainWindow.inspectElement(x, y);
+                    },
+                },
+            ]);
+            menu.popup(WindowManager.mainWindow);
+        });
+    }
 }
