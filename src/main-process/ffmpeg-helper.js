@@ -25,7 +25,7 @@ function transformDuration(duration) {
     return 0;
 }
 
-export function videoSupport(videoPath) {
+export const videoSupport = (videoPath) => {
     let p = new Promise(function (resolve, reject) {
         let command = `${ffmpegPath} -i "${videoPath}"`;
         process.exec(
@@ -78,4 +78,4 @@ export function videoSupport(videoPath) {
         );
     });
     return p;
-}
+};
