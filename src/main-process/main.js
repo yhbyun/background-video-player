@@ -1,6 +1,11 @@
-'use strict';
-
-import { app, protocol, BrowserWindow, ipcMain, screen } from 'electron';
+import {
+    app,
+    protocol,
+    BrowserWindow,
+    ipcMain,
+    screen,
+    session,
+} from 'electron';
 import installExtension, { VUEJS3_DEVTOOLS } from 'electron-devtools-installer';
 import WindowManager from './window-manager';
 import WindowUtils from './window-utils';
@@ -9,6 +14,7 @@ import { playVideo } from './video-manager';
 import { logManager } from './log-manager';
 import config from './config';
 import status from './status';
+import path from 'path';
 
 let logger = logManager.getLogger('WindowManager');
 
@@ -55,7 +61,10 @@ app.on('ready', async () => {
     }
 
     try {
-        await installExtension('pjhnilfooknlkdonmjnleaomamfehkli');
+        const ext = await session.defaultSession.loadExtension(
+            path.join(config.root, 'extensions/nflxmultisubs')
+        );
+        logger.info('ext', ext);
     } catch (e) {
         logger.error(
             'NflxMultiSubs(Netflix Multi. Subtitles) chrome extension failed to install:',
