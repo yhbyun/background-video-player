@@ -54,6 +54,15 @@ app.on('ready', async () => {
         }
     }
 
+    try {
+        await installExtension('pjhnilfooknlkdonmjnleaomamfehkli');
+    } catch (e) {
+        logger.error(
+            'NflxMultiSubs(Netflix Multi. Subtitles) chrome extension failed to install:',
+            e.toString()
+        );
+    }
+
     WindowManager.openMainWindow();
     WindowManager.setTrayWindow();
 });
