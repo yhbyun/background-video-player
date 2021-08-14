@@ -1,7 +1,7 @@
 import * as log from 'electron-log';
 import config from './config';
 
-let isLoggingEnabled = config.persisted.get('isLoggingEnabled');
+let isLoggingEnabled = config.persisted.get('isLoggingEnabled', true);
 
 export class LogManager {
     getLogger(name) {
