@@ -52,4 +52,11 @@ export default class WindowUtils {
             y < bounds.y + bounds.height
         );
     }
+
+    static isWindowLeftOrRight() {
+        const { width } = screen.getPrimaryDisplay().workAreaSize;
+        const bounds = WindowManager.mainWindow.getBounds();
+
+        return bounds.x + bounds.width / 2 <= width / 2 ? 'left' : 'right';
+    }
 }
