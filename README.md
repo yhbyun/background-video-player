@@ -47,7 +47,7 @@ Refreshing authorization token(s)
 $ python3 -m castlabs_evs.vmp sign-pkg --persistent ./dist_electron/mac
 
 # Apple M1
-$ python3 -m castlabs_evs.vmp sign-pkg --persistent ./dist_electron/mac-arm65
+$ python3 -m castlabs_evs.vmp sign-pkg --persistent ./dist_electron/mac-arm64
 ```
 
 ## todo lists

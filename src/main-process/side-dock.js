@@ -20,7 +20,7 @@ export default class SideDock {
 
     static deactivateSidedock() {
         status.resizing = true;
-        staute.inZoom = true;
+        status.inZoom = true;
         WindowManager.mainWindow.setBounds(status.orgBounds, true);
         WindowUtils.setWindowOpacity(false);
     }
