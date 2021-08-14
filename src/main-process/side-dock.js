@@ -1,3 +1,4 @@
+import { screen } from 'electron';
 import WindowManager from './window-manager';
 import WindowUtils from './window-utils';
 import { logManager } from './log-manager';
@@ -12,10 +13,7 @@ export default class SideDock {
             WindowManager.mainWindow.getBounds()
         );
 
-        status.resizing = true;
-        status.inZoom = false;
-        WindowManager.mainWindow.setBounds({ x: 0, width: 30 }, true);
-        WindowUtils.setWindowOpacity(false);
+        SideDock._setWindowDocked();
     }
 
     static deactivateSidedock() {
@@ -28,15 +26,7 @@ export default class SideDock {
     static handleMouseEnterOnSidedock() {
         if (status.resizing || status.inZoom) return;
 
-        status.resizing = true;
-        status.inZoom = true;
-        WindowManager.mainWindow.setBounds(
-            {
-                width: status.orgBounds.width,
-            },
-            true
-        );
-        WindowUtils.setWindowOpacity(true);
+        SideDock._pullDockedWindow();
     }
 
     static handleMouseLeaveOnSidedock() {
@@ -47,9 +37,46 @@ export default class SideDock {
             return;
         }
 
+        SideDock._setWindowDocked();
+    }
+
+    static _setWindowDocked() {
         status.resizing = true;
         status.inZoom = false;
-        WindowManager.mainWindow.setBounds({ width: 30 }, true);
+
+        if (WindowUtils.isWindowLeftOrRight() === 'left') {
+            WindowManager.mainWindow.setBounds({ x: 0, width: 30 }, true);
+        } else {
+            const { width } = screen.getPrimaryDisplay().workAreaSize;
+            WindowManager.mainWindow.setBounds(
+                { x: width - 30, width: 30 },
+                true
+            );
+        }
+
         WindowUtils.setWindowOpacity(false);
+    }
+
+    static _pullDockedWindow() {
+        status.resizing = true;
+        status.inZoom = true;
+
+        if (WindowUtils.isWindowLeftOrRight() === 'left') {
+            WindowManager.mainWindow.setBounds(
+                { width: status.orgBounds.width },
+                true
+            );
+        } else {
+            const { width } = screen.getPrimaryDisplay().workAreaSize;
+            WindowManager.mainWindow.setBounds(
+                {
+                    x: width - status.orgBounds.width,
+                    width: status.orgBounds.width,
+                },
+                true
+            );
+        }
+
+        WindowUtils.setWindowOpacity(true);
     }
 }
