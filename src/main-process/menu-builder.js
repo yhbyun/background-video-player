@@ -99,7 +99,6 @@ const getSettingsMenuItems = (services) => {
         item.checked = true;
         config.persisted.set('options.opacity', opacity);
         WindowManager.mainWindow.setOpacity(opacity);
-        A;
     };
 
     return [
@@ -131,7 +130,7 @@ const getSettingsMenuItems = (services) => {
                             type: 'radio',
                             checked: opacity === 0.1,
                             click(item) {
-                                setOpactiry(item, 0.1);
+                                setOpacity(item, 0.1);
                             },
                         },
                         {
@@ -139,7 +138,7 @@ const getSettingsMenuItems = (services) => {
                             type: 'radio',
                             checked: opacity === 0.2,
                             click(item) {
-                                setOpactiry(item, 0.2);
+                                setOpacity(item, 0.2);
                             },
                         },
                         {
@@ -147,7 +146,7 @@ const getSettingsMenuItems = (services) => {
                             type: 'radio',
                             checked: opacity === 0.3,
                             click(item) {
-                                setOpactiry(item, 0.3);
+                                setOpacity(item, 0.3);
                             },
                         },
                         {
@@ -155,7 +154,7 @@ const getSettingsMenuItems = (services) => {
                             type: 'radio',
                             checked: opacity === 0.4,
                             click(item) {
-                                setOpactiry(item, 0.4);
+                                setOpacity(item, 0.4);
                             },
                         },
                         {
@@ -163,7 +162,7 @@ const getSettingsMenuItems = (services) => {
                             type: 'radio',
                             checked: opacity === 0.5,
                             click(item) {
-                                setOpactiry(item, 0.5);
+                                setOpacity(item, 0.5);
                             },
                         },
                         {
@@ -171,7 +170,7 @@ const getSettingsMenuItems = (services) => {
                             type: 'radio',
                             checked: opacity === 0.6,
                             click(item) {
-                                setOpactiry(item, 0.6);
+                                setOpacity(item, 0.6);
                             },
                         },
                         {
@@ -179,7 +178,7 @@ const getSettingsMenuItems = (services) => {
                             type: 'radio',
                             checked: opacity === 0.7,
                             click(item) {
-                                setOpactiry(item, 0.7);
+                                setOpacity(item, 0.7);
                             },
                         },
                         {
@@ -187,7 +186,7 @@ const getSettingsMenuItems = (services) => {
                             type: 'radio',
                             checked: opacity === 0.8,
                             click(item) {
-                                setOpactiry(item, 0.8);
+                                setOpacity(item, 0.8);
                             },
                         },
                         {
@@ -195,7 +194,7 @@ const getSettingsMenuItems = (services) => {
                             type: 'radio',
                             checked: opacity === 0.9,
                             click(item) {
-                                setOpactiry(item, 0.9);
+                                setOpacity(item, 0.9);
                             },
                         },
                         {
@@ -203,7 +202,7 @@ const getSettingsMenuItems = (services) => {
                             type: 'radio',
                             checked: opacity === 1,
                             click(item) {
-                                setOpactiry(item, 1);
+                                setOpacity(item, 1);
                             },
                         },
                     ],
