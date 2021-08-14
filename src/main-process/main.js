@@ -1,9 +1,7 @@
 'use strict';
 
 import { app, protocol, BrowserWindow, ipcMain, screen } from 'electron';
-import { createProtocol } from 'vue-cli-plugin-electron-builder/lib';
 import installExtension, { VUEJS3_DEVTOOLS } from 'electron-devtools-installer';
-import services from '../default-services';
 import WindowManager from './window-manager';
 import WindowUtils from './window-utils';
 import SideDock from './side-dock';
