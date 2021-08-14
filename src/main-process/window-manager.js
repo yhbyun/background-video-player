@@ -1,7 +1,7 @@
 import { app, ipcMain, BrowserWindow, Tray } from 'electron';
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib';
 import MenuBuilder, { getTrayMenu } from './menu-builder';
-import services from '../default-services';
+import services from './default-services';
 import config from './config';
 import status from './status';
 import { logManager } from './log-manager';
