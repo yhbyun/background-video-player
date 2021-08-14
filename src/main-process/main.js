@@ -10,7 +10,7 @@ import { logManager } from './log-manager';
 import config from './config';
 import status from './status';
 
-let logger = logManager.getLogger('background');
+let logger = logManager.getLogger('WindowManager');
 
 // const headerScript = fs.readFileSync(
 //     path.join(__dirname, 'client-header.js'),
@@ -50,7 +50,7 @@ app.on('ready', async () => {
         try {
             await installExtension(VUEJS3_DEVTOOLS);
         } catch (e) {
-            console.error('Vue Devtools failed to install:', e.toString());
+            logger.error('Vue Devtools failed to install:', e.toString());
         }
     }
 
