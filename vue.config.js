@@ -13,6 +13,13 @@ module.exports = {
             // List native deps here if they don't work
             externals: ['@ffmpeg-installer/ffmpeg', 'electron-prompt'],
             mainProcessFile: 'src/main-process/main.js',
+            builderOptions: {
+                productName: 'Background Video Player',
+                extraResources: ['extensions/**/*'],
+                electronDownload: {
+                    mirror: 'https://github.com/castlabs/electron-releases/releases/download/v',
+                },
+            },
             chainWebpackMainProcess: (config) => {
                 // Chain webpack config for electron main process only
                 // https://github.com/nklayman/vue-cli-plugin-electron-builder/issues/139
@@ -36,12 +43,6 @@ module.exports = {
             },
             chainWebpackRendererProcess: (config) => {
                 // Chain webpack config for electron renderer process only (won't be applied to web builds)
-            },
-            builderOptions: {
-                productName: 'Background Video Player',
-                electronDownload: {
-                    mirror: 'https://github.com/castlabs/electron-releases/releases/download/v',
-                },
             },
         },
     },
