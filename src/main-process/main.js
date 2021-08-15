@@ -15,6 +15,7 @@ import { logManager } from './log-manager';
 import config from './config';
 import status from './status';
 import path from 'path';
+import { NETFLIX_LLN_EXT, NETFLIX_NFL_EXT } from './menu-builder';
 
 let logger = logManager.getLogger('Main');
 
@@ -56,16 +57,35 @@ app.on('ready', async () => {
         }
     }
 
-    try {
-        const ext = await session.defaultSession.loadExtension(
-            path.join(config.root, 'extensions/nflxmultisubs')
-        );
-        logger.info('ext', ext);
-    } catch (e) {
-        logger.error(
-            'NflxMultiSubs(Netflix Multi. Subtitles) chrome extension failed to install:',
-            e.toString()
-        );
+    switch (config.persisted.get('options.netflix_extension')) {
+        case NETFLIX_LLN_EXT:
+            try {
+                const ext = await installExtension(
+                    'hoombieeljmmljlkjmnheibnpciblicm'
+                );
+                logger.info(`"${NETFLIX_LLN_EXT}" netflix extension installed`);
+            } catch (e) {
+                logger.error(
+                    `"${NETFLIX_LLN_EXT}" netflix extension failed to install:`,
+                    e.toString()
+                );
+            }
+            break;
+
+        case NETFLIX_NFL_EXT:
+            try {
+                const ext = await session.defaultSession.loadExtension(
+                    path.join(config.root, 'extensions/nflxmultisubs')
+                );
+                logger.debug('extension', ext);
+                logger.info(`"${NETFLIX_NFL_EXT}" netflix extension installed`);
+            } catch (e) {
+                logger.error(
+                    `"${NETFLIX_NFL_EXT}" netflix extension failed to install:`,
+                    e.toString()
+                );
+            }
+            break;
     }
 
     WindowManager.openMainWindow();
