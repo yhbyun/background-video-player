@@ -30,7 +30,9 @@ module.exports = {
 
                 config.module
                     .rule('babel')
-                    .test(/(main\-process|common).*\.js$/)
+                    .test(
+                        /(main\-process|common|node_modules\/electron\-tween\/electron\-tween).*\.js$/
+                    )
                     .use('babel')
                     .loader('babel-loader')
                     .options({

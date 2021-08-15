@@ -3,8 +3,10 @@ import WindowManager from './window-manager';
 import WindowUtils from './window-utils';
 import { logManager } from './log-manager';
 import status from './status';
+import { ElectronTWEEN } from 'electron-tween';
 
 let logger = logManager.getLogger('SideDock');
+const sidedockWidth = 20;
 
 export default class SideDock {
     static activateSidedock() {
@@ -44,15 +46,33 @@ export default class SideDock {
         status.resizing = true;
         status.inZoom = false;
 
+        const bounds = WindowManager.mainWindow.getBounds();
+        let to;
+
         if (WindowUtils.isWindowLeftOrRight() === 'left') {
-            WindowManager.mainWindow.setBounds({ x: 0, width: 30 }, true);
+            to = {
+                x: sidedockWidth - bounds.width,
+                y: bounds.y,
+            };
         } else {
             const { width } = screen.getPrimaryDisplay().workAreaSize;
-            WindowManager.mainWindow.setBounds(
-                { x: width - 30, width: 30 },
-                true
-            );
+
+            to = {
+                x: width - sidedockWidth,
+                y: bounds.y,
+            };
         }
+
+        ElectronTWEEN.Move({
+            win: WindowManager.mainWindow,
+            to: to,
+            time: 200,
+            easing: 'BOUNCE_OUT',
+            start: true,
+            onComplete: () => {
+                status.resizing = false;
+            },
+        });
 
         WindowUtils.setWindowOpacity(false);
     }
@@ -61,21 +81,32 @@ export default class SideDock {
         status.resizing = true;
         status.inZoom = true;
 
+        const bounds = WindowManager.mainWindow.getBounds();
+        let to;
+
         if (WindowUtils.isWindowLeftOrRight() === 'left') {
-            WindowManager.mainWindow.setBounds(
-                { width: status.orgBounds.width },
-                true
-            );
+            to = {
+                x: 0,
+                y: bounds.y,
+            };
         } else {
             const { width } = screen.getPrimaryDisplay().workAreaSize;
-            WindowManager.mainWindow.setBounds(
-                {
-                    x: width - status.orgBounds.width,
-                    width: status.orgBounds.width,
-                },
-                true
-            );
+            to = {
+                x: width - bounds.width,
+                y: bounds.y,
+            };
         }
+
+        ElectronTWEEN.Move({
+            win: WindowManager.mainWindow,
+            to: to,
+            time: 200,
+            easing: 'BOUNCE_OUT',
+            start: true,
+            onComplete: () => {
+                status.resizing = false;
+            },
+        });
 
         WindowUtils.setWindowOpacity(true);
     }
