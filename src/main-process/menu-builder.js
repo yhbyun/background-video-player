@@ -4,12 +4,16 @@ import config from './config';
 import status from './status';
 import { logManager } from './log-manager';
 import WindowManager, { sendToMainWindow } from './window-manager';
+import WindowUtils from './window-utils';
 import Utils from '../common/utils';
 
 const macOS = process.platform === 'darwin';
 let logger = logManager.getLogger('MenuBuilder');
 
 let trayMenu = null;
+
+export const NETFLIX_LLN_EXT = 'Language Learning with Netflix';
+export const NETFLIX_NFL_EXT = 'NflxMultiSubs (Netflix Multi. Subtitles)';
 
 const setCheckboxMenuChecked = (menuId, checked) => {
     Menu.getApplicationMenu().getMenuItemById(menuId).checked = checked;
@@ -376,6 +380,44 @@ const getSettingsMenuItems = (services) => {
                 config.persisted.set('options.loop', e.checked);
                 setCheckboxMenuChecked('loop', e.checked);
             },
+        },
+        { type: 'separator' },
+        {
+            label: 'Netflix Subtile',
+            submenu: [
+                {
+                    label: NETFLIX_LLN_EXT,
+                    type: 'radio',
+                    checked:
+                        config.persisted.get('options.netflix_extension') ===
+                        NETFLIX_LLN_EXT,
+                    click(item) {
+                        item.checked = true;
+                        config.persisted.set(
+                            'options.netflix_extension',
+                            NETFLIX_LLN_EXT
+                        );
+
+                        WindowUtils.relaunch();
+                    },
+                },
+                {
+                    label: NETFLIX_NFL_EXT,
+                    type: 'radio',
+                    checked:
+                        config.persisted.get('options.netflix_extension') ===
+                        NETFLIX_NFL_EXT,
+                    click(item) {
+                        item.checked = true;
+                        config.persisted.set(
+                            'options.netflix_extension',
+                            NETFLIX_NFL_EXT
+                        );
+
+                        WindowUtils.relaunch();
+                    },
+                },
+            ],
         },
         { label: 'Enabled Services', submenu: enabledServicesMenuItems },
         {
