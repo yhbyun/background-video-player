@@ -85,6 +85,14 @@ ipcMain.handle('getStoreValue', (event, ...args) => {
     return config.persisted.get(args[0], args[1]);
 });
 
+ipcMain.handle('getStatus', (event, key) => {
+    return status[key];
+});
+
+ipcMain.on('setStatus', (event, key, value) => {
+    status[key] = value;
+});
+
 ipcMain.on('mouseEnter', (event, args) => {
     mouseEnter();
 });

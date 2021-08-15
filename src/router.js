@@ -12,6 +12,9 @@ export default new VueRouter({
             path: '/',
             name: 'player',
             component: Player,
+            props: (route) => ({
+                useSampleVideo: route.query.useSampleVideo === 'true',
+            }),
         },
     ],
 });
