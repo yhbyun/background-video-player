@@ -158,17 +158,9 @@ export default class WindowManager {
 
         this.mainWindow.on('close', () => {
             if (this.mainWindow) {
-                let bounds = {};
-
-                if (WindowUtils.isSidedockMode()) {
-                    bounds = status.orgBounds;
-                } else {
-                    bounds.x = this.mainWindow.getPosition()[0];
-                    bounds.y = this.mainWindow.getPosition()[1];
-                    bounds.width = this.mainWindow.getSize()[0];
-                    bounds.height = this.mainWindow.getSize()[1];
-                }
-
+                const bounds = WindowUtils.isSidedockMode()
+                    ? status.orgBounds
+                    : this.mainWindow.getBounds();
                 config.persisted.set('options.windowSize', bounds);
             }
             // if (app.dock) {
