@@ -16,7 +16,7 @@ import config from './config';
 import status from './status';
 import path from 'path';
 
-let logger = logManager.getLogger('WindowManager');
+let logger = logManager.getLogger('Main');
 
 // const headerScript = fs.readFileSync(
 //     path.join(__dirname, 'client-header.js'),
@@ -117,7 +117,7 @@ if (config.isDev) {
 }
 
 function broswerWindowDomReady() {
-    console.log('broswerWindowDomReady');
+    logger.debug('broswerWindowDomReady');
     // win.webContents.executeJavaScript(headerScript);
 }
 
@@ -191,7 +191,7 @@ function mouseLeave() {
         return;
 
     if (WindowUtils.isMouseOverWindow()) {
-        console.log("Ignore mosueleave. It's wrong.");
+        logger.debug("Ignore mosueleave. It's wrong.");
         return;
     }
 
