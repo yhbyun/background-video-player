@@ -80,15 +80,9 @@ module.exports = [
     },
     {
         name: 'Crunchyroll',
+        hidden: true,
         logo: 'services/crunchyroll.png',
         url: 'https://crunchyroll.com',
-        color: '#ffe600',
-        permissions: [],
-    },
-    {
-        name: 'Ritmo Romantica',
-        logo: '',
-        url: 'https://ritmoromantica.pe/radioenvivo',
         color: '#ffe600',
         permissions: [],
     },
