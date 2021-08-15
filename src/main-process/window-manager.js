@@ -118,17 +118,26 @@ export default class WindowManager {
         });
 
         let defaultService = config.persisted.get('options.defaultService'),
-            lastOpenedPage = config.persisted.get('options.lastOpenedPage'),
-            relaunchToPage = config.persisted.get('relaunch.toPage');
+            lastOpenedPage = config.persisted.get('options.lastOpenedPage');
+
+        const firstPageUrl =
+            '#/?useSampleVideo=' +
+            (defaultService === 'lastOpenedPage' &&
+            lastOpenedPage &&
+            (lastOpenedPage.service || lastOpenedPage.url)
+                ? 'false'
+                : 'true');
 
         if (process.env.WEBPACK_DEV_SERVER_URL) {
             // Load the url of the dev server if in development mode
-            this.mainWindow.loadURL(process.env.WEBPACK_DEV_SERVER_URL);
+            this.mainWindow.loadURL(
+                process.env.WEBPACK_DEV_SERVER_URL + firstPageUrl
+            );
             // if (!process.env.IS_TEST) win.webContents.openDevTools();
         } else {
             createProtocol('app');
             // Load the index.html when not in development
-            this.mainWindow.loadURL('app://./index.html');
+            this.mainWindow.loadURL('app://./index.html' + firstPageUrl);
         }
 
         this.mainWindow.on('focus', () => {
@@ -139,6 +148,23 @@ export default class WindowManager {
 
         this.mainWindow.webContents.on('did-finish-load', () => {
             logger.debug('did-finish-load');
+
+            if (
+                defaultService === 'lastOpenedPage' &&
+                lastOpenedPage &&
+                (lastOpenedPage.service || lastOpenedPage.url)
+            ) {
+                sendToMainWindow('changeMode', {
+                    name: 'browser',
+                    service: lastOpenedPage.service,
+                    url: lastOpenedPage.url,
+                });
+
+                if (lastOpenedPage.service) {
+                    sendToMainWindow('run-loader', lastOpenedPage.service);
+                }
+            }
+
             if (showOnLoad) {
                 this.mainWindow.show();
                 // this.mainWindow.focus();
@@ -158,11 +184,23 @@ export default class WindowManager {
 
         this.mainWindow.on('close', () => {
             if (this.mainWindow) {
+                // Save open service if lastOpenedPage is the default service
+                if (
+                    config.persisted.get('options.defaultService') ===
+                    'lastOpenedPage'
+                ) {
+                    config.persisted.set('options.lastOpenedPage', {
+                        service: status.curService,
+                        url: status.curUrl,
+                    });
+                }
+
                 const bounds = WindowUtils.isSidedockMode()
                     ? status.orgBounds
                     : this.mainWindow.getBounds();
                 config.persisted.set('options.windowSize', bounds);
             }
+
             // if (app.dock) {
             //     logger.debug('Hide dock window.');
             //     app.dock.hide();

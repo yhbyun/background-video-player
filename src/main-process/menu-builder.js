@@ -29,8 +29,9 @@ const getServiceMenuItems = (services) => {
             click() {
                 sendToMainWindow('changeMode', {
                     name: 'browser',
-                    url: service.url,
+                    service: service,
                 });
+
                 sendToMainWindow('run-loader', service);
             },
         }));

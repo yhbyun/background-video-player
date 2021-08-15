@@ -42,21 +42,31 @@ export default {
     components: {
         VideoPlayer,
     },
+    props: {
+        useSampleVideo: {
+            type: Boolean,
+            default: false,
+        },
+    },
     data() {
         return {
             videoOptions: {
                 autoplay: false,
                 controls: true,
                 preload: 'auto',
-                sources: [
-                    {
-                        src: 'https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-1080p.mp4',
-                        type: 'video/mp4',
-                    },
-                ],
-                poster: 'https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.jpg',
+                sources: this.useSampleVideo
+                    ? [
+                          {
+                              src: 'https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-1080p.mp4',
+                              type: 'video/mp4',
+                          },
+                      ]
+                    : null,
+                poster: this.useSampleVideo
+                    ? 'https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.jpg'
+                    : null,
             },
-            mode: 'video',
+            mode: this.useSampleVideo ? 'video' : 'browser',
             webviewUrl: '',
             isLoading: false,
             preload: 'file://' + path.join(__static, 'webview-inject.js'),
@@ -172,8 +182,11 @@ export default {
         ipcRenderer.on('changeMode', (e, route) => {
             if (route.name === 'browser') {
                 this.mode = 'browser';
-                this.webviewUrl = route.url;
-                console.log('Changing URL To: ' + route.url);
+                this.webviewUrl = route.url || route.service.url;
+                console.log('Changing URL To: ' + this.webviewUrl);
+
+                ipcRenderer.send('setStatus', 'curUrl', route.url);
+                ipcRenderer.send('setStatus', 'curService', route.service);
             } else {
                 this.mode = 'video';
             }
