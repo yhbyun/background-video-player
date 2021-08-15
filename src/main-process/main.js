@@ -23,10 +23,6 @@ let logger = logManager.getLogger('Main');
 //     'utf8'
 // );
 
-// Keep a global reference of the window object, if you don't, the window will
-// be closed automatically when the JavaScript object is garbage collected.
-let win;
-
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([
     { scheme: 'app', privileges: { secure: true, standard: true } },
@@ -165,7 +161,7 @@ function mouseEnter() {
 
             status.resizing = true;
             status.inZoom = true;
-            win.setBounds(bounds, true);
+            WindowManager.mainWindow.setBounds(bounds, true);
         }
 
         WindowUtils.setWindowOpacity(true);
@@ -199,7 +195,7 @@ function mouseLeave() {
         if (WindowUtils.isTransparentZoomEnabled()) {
             status.resizing = true;
             status.inZoom = false;
-            win.setBounds(status.orgBounds, true);
+            WindowManager.mainWindow.setBounds(status.orgBounds, true);
         }
 
         WindowUtils.setWindowOpacity(false);
