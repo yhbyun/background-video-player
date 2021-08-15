@@ -1,4 +1,4 @@
-import { screen } from 'electron';
+import { app, screen } from 'electron';
 import WindowManager from './window-manager';
 import config from './config';
 import { logManager } from './log-manager';
@@ -58,5 +58,10 @@ export default class WindowUtils {
         const bounds = WindowManager.mainWindow.getBounds();
 
         return bounds.x + bounds.width / 2 <= width / 2 ? 'left' : 'right';
+    }
+
+    static relaunch() {
+        app.relaunch();
+        app.quit();
     }
 }
