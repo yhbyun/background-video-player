@@ -312,19 +312,6 @@ const getSettingsMenuItems = (services) => {
                     },
                 },
                 {
-                    label: 'Mouse Over (Zoom)',
-                    type: 'radio',
-                    checked: transparentMode === 'mouse_over_zoom',
-                    click(item) {
-                        item.checked = true;
-                        config.persisted.set(
-                            'options.transparent_mode',
-                            'mouse_over_zoom'
-                        );
-                        WindowManager.mainWindow.setOpacity(1);
-                    },
-                },
-                {
                     label: 'Mouse Out',
                     type: 'radio',
                     checked: transparentMode === 'mouse_out',
@@ -333,23 +320,6 @@ const getSettingsMenuItems = (services) => {
                         config.persisted.set(
                             'options.transparent_mode',
                             'mouse_out'
-                        );
-                        if (config.persisted.get('options.transparency')) {
-                            WindowManager.mainWindow.setOpacity(
-                                config.persisted.get('options.opacity')
-                            );
-                        }
-                    },
-                },
-                {
-                    label: 'Mouse Out (Zoom)',
-                    type: 'radio',
-                    checked: transparentMode === 'mouse_out_zoom',
-                    click(item) {
-                        item.checked = true;
-                        config.persisted.set(
-                            'options.transparent_mode',
-                            'mouse_out_zoom'
                         );
                         if (config.persisted.get('options.transparency')) {
                             WindowManager.mainWindow.setOpacity(
