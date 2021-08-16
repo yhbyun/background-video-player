@@ -7,6 +7,7 @@ import {
     toggleAlwaysOnTop,
     toggleIgnoreMouse,
     toggleSidedock,
+    forceFocus,
 } from './menu-builder';
 
 const isDevelopment = process.env.NODE_ENV !== 'production';
@@ -82,6 +83,10 @@ export default {
         toggleSidedock: {
             combo: 'Cmd+Ctrl+Shift+S',
             action: () => toggleSidedock(),
+        },
+        forceFocus: {
+            combo: 'Cmd+Ctrl+Shift+I',
+            action: () => forceFocus(),
         },
     },
 
