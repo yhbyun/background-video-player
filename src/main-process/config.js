@@ -3,6 +3,7 @@ import * as path from 'path';
 import * as os from 'os';
 import {
     toggleTransparency,
+    toggleOpacity,
     toggleAlwaysOnTop,
     toggleIgnoreMouse,
     toggleSidedock,
@@ -65,6 +66,10 @@ export default {
         toggleTransparency: {
             combo: 'Cmd+Ctrl+Shift+O',
             action: () => toggleTransparency(),
+        },
+        toggleOpacity: {
+            combo: 'Cmd+Ctrl+Shift+P',
+            action: () => toggleOpacity(),
         },
         toggleAlwaysOnTop: {
             combo: 'Cmd+Ctrl+Shift+A',

@@ -39,6 +39,16 @@ export const toggleTransparency = () => {
     if (!enabled) setCheckboxMenuChecked('background-play', false);
 };
 
+/**
+ * Show or hide window temporarily.
+ */
+export const toggleOpacity = () => {
+    logger.debug('toggleOpacity is called');
+    const opacity = WindowManager.mainWindow.getOpacity();
+
+    WindowManager.mainWindow.setOpacity(opacity === 1.0 ? 0 : 1);
+};
+
 export const toggleAlwaysOnTop = () => {
     logger.debug('toggleAlwaysOnTop is called');
     const enabled = !config.persisted.get('options.alwaysOnTop');
