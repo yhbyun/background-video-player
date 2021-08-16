@@ -49,9 +49,9 @@ export default class WindowManager {
     static setMainWindow(showOnLoad = true) {
         this.createMainWindow();
 
-        config.persisted.get('options.transparency', true)
+        config.persisted.get('options.transparency')
             ? this.mainWindow.setOpacity(
-                  config.persisted.get('options.opacity', 0.3)
+                  config.persisted.get('options.opacity')
               )
             : this.mainWindow.setOpacity(1);
 
@@ -141,8 +141,9 @@ export default class WindowManager {
         }
 
         this.mainWindow.on('focus', () => {
-            let sendEventName = 'main-window-focus';
-            logger.debug('Sending focus event: ' + sendEventName);
+            logger.debug('Main Window focused');
+            // let sendEventName = 'main-window-focus';
+            // logger.debug('Sending focus event: ' + sendEventName);
             // WindowManager.mainWindow.webContents.send(sendEventName, 'ping');
         });
 

@@ -15,6 +15,49 @@ let trayMenu = null;
 export const NETFLIX_LLN_EXT = 'Language Learning with Netflix';
 export const NETFLIX_NFL_EXT = 'NflxMultiSubs (Netflix Multi. Subtitles)';
 
+export const toggleIgnoreMouse = () => {
+    logger.debug('toggleIgnoreMouse is called');
+    const enabled = !config.persisted.get('options.ignoreMouseEvent');
+
+    config.persisted.set('options.ignoreMouseEvent', enabled);
+    WindowManager.mainWindow.setIgnoreMouseEvents(enabled);
+    setCheckboxMenuChecked('ignore-mouse-event', enabled);
+    if (!enabled) setCheckboxMenuChecked('background-play', false);
+};
+
+export const toggleTransparency = () => {
+    logger.debug('toggleTransparency is called');
+    const enabled = !config.persisted.get('options.transparency');
+    const opacity = config.persisted.get('options.opacity');
+
+    config.persisted.set('options.transparency', enabled);
+    enabled
+        ? WindowManager.mainWindow.setOpacity(opacity)
+        : WindowManager.mainWindow.setOpacity(1);
+
+    setCheckboxMenuChecked('transparency', enabled);
+    if (!enabled) setCheckboxMenuChecked('background-play', false);
+};
+
+export const toggleAlwaysOnTop = () => {
+    logger.debug('toggleAlwaysOnTop is called');
+    const enabled = !config.persisted.get('options.alwaysOnTop');
+
+    config.persisted.set('options.alwaysOnTop', enabled);
+    WindowManager.mainWindow.setAlwaysOnTop(enabled);
+    setCheckboxMenuChecked('alwaysontop', enabled);
+    if (!enabled) setCheckboxMenuChecked('background-play');
+};
+
+export const toggleSidedock = () => {
+    logger.debug('toggleSidedock is called');
+    const enabled = !config.persisted.get('options.sidedock');
+
+    setCheckboxMenuChecked('sidedock', enabled);
+    config.persisted.set('options.sidedock', enabled);
+    sendToMainWindow('toggleSidedock', enabled);
+};
+
 const setCheckboxMenuChecked = (menuId, checked) => {
     Menu.getApplicationMenu().getMenuItemById(menuId).checked = checked;
     trayMenu.getMenuItemById(menuId).checked = checked;
@@ -91,7 +134,7 @@ const getServiceMenuItems = (services) => {
 };
 
 const getSettingsMenuItems = (services) => {
-    const opacity = config.persisted.get('options.opacity', 0.3);
+    const opacity = config.persisted.get('options.opacity');
     const transparentMode = config.persisted.get(
         'options.transparent_mode',
         'always'
@@ -114,17 +157,10 @@ const getSettingsMenuItems = (services) => {
                     label: 'Enabled',
                     id: 'transparency',
                     type: 'checkbox',
-                    accelerator: macOS ? 'Command+Ctrl+Shift+O' : 'Ctrl+T',
-                    checked: config.persisted.get('options.transparency', true),
+                    accelerator: macOS ? 'Cmd+Ctrl+Shift+O' : 'Ctrl+T',
+                    checked: config.persisted.get('options.transparency'),
                     click(e) {
-                        config.persisted.set('options.transparency', e.checked);
-                        e.checked
-                            ? WindowManager.mainWindow.setOpacity(opacity)
-                            : WindowManager.mainWindow.setOpacity(1);
-
-                        setCheckboxMenuChecked('transparency', e.checked);
-                        if (!e.checked)
-                            setCheckboxMenuChecked('background-play', false);
+                        toggleTransparency();
                     },
                 },
                 {
@@ -225,7 +261,7 @@ const getSettingsMenuItems = (services) => {
                         );
                         if (config.persisted.get('options.transparency')) {
                             WindowManager.mainWindow.setOpacity(
-                                config.persisted.get('options.opacity', 0.3)
+                                config.persisted.get('options.opacity')
                             );
                         }
                     },
@@ -268,7 +304,7 @@ const getSettingsMenuItems = (services) => {
                         );
                         if (config.persisted.get('options.transparency')) {
                             WindowManager.mainWindow.setOpacity(
-                                config.persisted.get('options.opacity', 0.3)
+                                config.persisted.get('options.opacity')
                             );
                         }
                     },
@@ -285,7 +321,7 @@ const getSettingsMenuItems = (services) => {
                         );
                         if (config.persisted.get('options.transparency')) {
                             WindowManager.mainWindow.setOpacity(
-                                config.persisted.get('options.opacity', 0.3)
+                                config.persisted.get('options.opacity')
                             );
                         }
                     },
@@ -296,59 +332,41 @@ const getSettingsMenuItems = (services) => {
             label: 'Always on top',
             id: 'alwaysontop',
             type: 'checkbox',
-            accelerator:
-                process.platform === 'darwin'
-                    ? 'Command+Ctrl+Shift+A'
-                    : 'Ctrl+A',
-            checked: config.persisted.get('options.alwaysOnTop', true),
+            accelerator: macOS ? 'Cmd+Ctrl+Shift+A' : 'Ctrl+A',
+            checked: config.persisted.get('options.alwaysOnTop'),
             click(e) {
-                config.persisted.set('options.alwaysOnTop', e.checked);
-                WindowManager.mainWindow.setAlwaysOnTop(e.checked);
-                setCheckboxMenuChecked('alwaysontop', e.checked);
-                if (!e.checked)
-                    setCheckboxMenuChecked('background-play', false);
+                toggleAlwaysOnTop();
             },
         },
         {
             label: 'Disable Mouse',
             id: 'ignore-mouse-event',
             type: 'checkbox',
-            accelerator:
-                process.platform === 'darwin'
-                    ? 'Command+Ctrl+Shift+M'
-                    : 'Ctrl+M',
+            accelerator: macOS ? 'Cmd+Ctrl+Shift+M' : 'Ctrl+M',
             checked: config.persisted.get('options.ignoreMouseEvent', true),
             click(e) {
-                config.persisted.set('options.ignoreMouseEvent', e.checked);
-                WindowManager.mainWindow.setIgnoreMouseEvents(e.checked);
-                setCheckboxMenuChecked('ignore-mouse-event', e.checked);
-                if (!e.checked)
-                    setCheckboxMenuChecked('background-play', false);
+                toggleIgnoreMouse();
             },
         },
         {
             label: 'Side Dock',
             id: 'sidedock',
             type: 'checkbox',
-            checked: config.persisted.get('options.sidedock', false),
+            accelerator: macOS ? 'Cmd+Ctrl+Shift+S' : 'Ctrl+S',
+            checked: config.persisted.get('options.sidedock'),
             click(e) {
-                setCheckboxMenuChecked('sidedock', e.checked);
-                config.persisted.set('options.sidedock', e.checked);
-                sendToMainWindow('toggleSidedock', e.checked);
+                toggleSidedock();
             },
         },
         {
             label: 'Background Play',
             id: 'background-play',
             type: 'checkbox',
-            accelerator:
-                process.platform === 'darwin'
-                    ? 'Command+Ctrl+Shift+B'
-                    : 'Ctrl+B',
+            accelerator: macOS ? 'Cmd+Ctrl+Shift+B' : 'Ctrl+B',
             checked:
-                config.persisted.get('options.transparency', true) &&
-                config.persisted.get('options.alwaysOnTop', true) &&
-                config.persisted.get('options.ignoreMouseEvent', true),
+                config.persisted.get('options.transparency') &&
+                config.persisted.get('options.alwaysOnTop') &&
+                config.persisted.get('options.ignoreMouseEvent'),
             click(e) {
                 config.persisted.set('options.transparency', e.checked);
                 e.checked
@@ -371,11 +389,8 @@ const getSettingsMenuItems = (services) => {
             label: 'Loop',
             id: 'loop',
             type: 'checkbox',
-            accelerator:
-                process.platform === 'darwin'
-                    ? 'Command+Ctrl+Shift+L'
-                    : 'Ctrl+L',
-            checked: config.persisted.get('options.loop', false),
+            accelerator: macOS ? 'Cmd+Ctrl+Shift+L' : 'Ctrl+L',
+            checked: config.persisted.get('options.loop'),
             click(e) {
                 config.persisted.set('options.loop', e.checked);
                 setCheckboxMenuChecked('loop', e.checked);

@@ -16,6 +16,7 @@ import config from './config';
 import status from './status';
 import path from 'path';
 import { NETFLIX_LLN_EXT, NETFLIX_NFL_EXT } from './menu-builder';
+import { registerShortcuts, unregisterAll } from './shortcut-manager';
 
 let logger = logManager.getLogger('Main');
 
@@ -90,6 +91,11 @@ app.on('ready', async () => {
 
     WindowManager.openMainWindow();
     WindowManager.setTrayWindow();
+    registerShortcuts();
+});
+
+app.on('will-quit', () => {
+    unregisterAll();
 });
 
 ipcMain.once('ipcRendererReady', (event, args) => {
