@@ -41,12 +41,28 @@ export const toggleTransparency = () => {
 
 /**
  * Show or hide window temporarily.
+ * cyclt : show -> transparent -> hide -> show ...
  */
 export const toggleOpacity = () => {
     logger.debug('toggleOpacity is called');
     const opacity = WindowManager.mainWindow.getOpacity();
+    let newOpacity;
 
-    WindowManager.mainWindow.setOpacity(opacity === 1.0 ? 0 : 1);
+    switch (opacity) {
+        case 1:
+            newOpacity = config.persisted.get('options.opacity');
+            break;
+
+        case 0:
+            newOpacity = 1;
+            break;
+
+        default:
+            newOpacity = 0;
+            break;
+    }
+
+    WindowManager.mainWindow.setOpacity(newOpacity);
 };
 
 export const toggleAlwaysOnTop = () => {
@@ -66,6 +82,12 @@ export const toggleSidedock = () => {
     setCheckboxMenuChecked('sidedock', enabled);
     config.persisted.set('options.sidedock', enabled);
     sendToMainWindow('toggleSidedock', enabled);
+};
+
+export const forceFocus = () => {
+    logger.debug('forceFocus is called');
+    WindowManager.mainWindow.focus();
+    app.focus({ steal: true });
 };
 
 const setCheckboxMenuChecked = (menuId, checked) => {
