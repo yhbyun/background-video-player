@@ -14,7 +14,7 @@ setInterval(function () {
     if (!hover) return;
 
     if (!mouseMoved) {
-        console.log('Force mouseLeve');
+        console.log('Force mouseLeave');
         hover = false;
         ipcRenderer.send('mouseLeave');
     } else {
