@@ -7,7 +7,7 @@ import {
     session,
 } from 'electron';
 import installExtension, { VUEJS3_DEVTOOLS } from 'electron-devtools-installer';
-import WindowManager from './window-manager';
+import WindowManager, { sendToMainWindow } from './window-manager';
 import WindowUtils from './window-utils';
 import SideDock from './side-dock';
 import { playVideo } from './video-manager';
@@ -119,6 +119,10 @@ ipcMain.on('setStatus', (event, key, value) => {
     status[key] = value;
 });
 
+ipcMain.handle('getService', (event, serviceName) => {
+    return status.services.find((service) => service.name == serviceName);
+});
+
 ipcMain.on('mouseEnter', (event, args) => {
     mouseEnter();
 });
@@ -200,6 +204,8 @@ function mouseEnter() {
 
         WindowUtils.setWindowOpacity(true);
     }
+
+    sendToMainWindow('enter-window');
 }
 
 function mouseLeave() {
@@ -234,4 +240,6 @@ function mouseLeave() {
 
         WindowUtils.setWindowOpacity(false);
     }
+
+    sendToMainWindow('leave-window');
 }
