@@ -15,6 +15,7 @@
         </div>
         <webview
             id="wv-browser"
+            ref="wvBrowser"
             class="w-screen h-screen"
             :src="webviewUrl"
             :preload="preload"
@@ -36,6 +37,7 @@ import '../StreamPlayTech';
 import path from 'path';
 import VideoPlayer from '@/components/VideoPlayer.vue';
 import '../videojs-custom-theme.css';
+import EventBus from '../EventBus';
 
 export default {
     name: 'player',
@@ -78,8 +80,7 @@ export default {
         },
     },
     mounted() {
-        var wvBrowser = document.getElementById('wv-browser');
-        wvBrowser.addEventListener('dom-ready', () => {
+        this.$refs.wvBrowser.addEventListener('dom-ready', () => {
             console.log('wvBrowser dom-ready');
             this.isLoading = false;
 
@@ -87,7 +88,7 @@ export default {
                 remote.process.env.NODE_ENV &&
                 remote.process.env.NODE_ENV !== 'production'
             ) {
-                wvBrowser.openDevTools();
+                this.$refs.wvBrowser.openDevTools();
             }
         });
 
@@ -105,6 +106,30 @@ export default {
             }
         };
 
+        EventBus.$on('change-service', (serviceName) => {
+            (async () => {
+                console.log(serviceName);
+                const service = await ipcRenderer.invoke(
+                    'getService',
+                    serviceName
+                );
+
+                if (!service) {
+                    console.error(`Cannot find ${serviceNzme} service`);
+                    return;
+                }
+
+                this.changeMode({ name: 'browser', service: service });
+                this.animateLoader(service);
+            })();
+        });
+
+        EventBus.$on('history-back', () => {
+            if (this.mode === 'browser') {
+                this.$refs.wvBrowser.goBack();
+            }
+        });
+
         ipcRenderer.on('play-control', (event, message) => {
             if (this.player) {
                 if (message === 'play') {
@@ -113,6 +138,18 @@ export default {
                     this.player.pause();
                 }
             }
+        });
+
+        ipcRenderer.on('enter-window', (event, message) => {
+            document.body.classList.add('hovering');
+            document.body.classList.remove('no-hovering');
+            EventBus.$emit('reset-radial-menu', false);
+        });
+
+        ipcRenderer.on('leave-window', (event, message) => {
+            document.body.classList.add('no-hovering');
+            document.body.classList.remove('hovering');
+            EventBus.$emit('reset-radial-menu', true);
         });
 
         ipcRenderer.on('openFile', (event, message) => {
@@ -180,16 +217,7 @@ export default {
         });
 
         ipcRenderer.on('changeMode', (e, route) => {
-            if (route.name === 'browser') {
-                this.mode = 'browser';
-                this.webviewUrl = route.url || route.service.url;
-                console.log('Changing URL To: ' + this.webviewUrl);
-
-                ipcRenderer.send('setStatus', 'curUrl', route.url);
-                ipcRenderer.send('setStatus', 'curService', route.service);
-            } else {
-                this.mode = 'video';
-            }
+            this.changeMode(route);
         });
 
         ipcRenderer.on('toggleSidedock', (e, enable) => {
@@ -222,6 +250,18 @@ export default {
                 this.$refs.ripple.style.backgroundColor = service.color;
 
                 this.isLoading = true;
+            }
+        },
+        changeMode(route) {
+            if (route.name === 'browser') {
+                this.mode = 'browser';
+                this.webviewUrl = route.url || route.service.url;
+                console.log('Changing URL To: ' + this.webviewUrl);
+
+                ipcRenderer.send('setStatus', 'curUrl', route.url);
+                ipcRenderer.send('setStatus', 'curService', route.service);
+            } else {
+                this.mode = 'video';
             }
         },
         mouseEnter() {
