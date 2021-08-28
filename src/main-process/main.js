@@ -144,12 +144,11 @@ ipcMain.on('setTrayToolTip', (event, title) => {
 });
 
 ipcMain.on('songChanged', (event, song) => {
-    WindowManager.tray.setTitle(song);
+    WindowManager.tray.setTitle(`${song.title} - ${song.artist}`);
 
-    if (song.indexOf('-') > 0 && song.indexOf('Radio Ritmo Romántic') === -1) {
-        const songTitle = song.split('-')[1].trim();
-        sendToMainWindow('songChanged', song);
-    }
+    if (song.title === 'Radio Ritmo Romántica') return;
+
+    sendToMainWindow('songChanged', song);
 });
 
 // Exit cleanly on request from parent process in development mode.
