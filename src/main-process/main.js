@@ -135,6 +135,23 @@ ipcMain.on('toggleSidedock', (event, enable) => {
     enable ? SideDock.activateSidedock() : SideDock.deactivateSidedock();
 });
 
+ipcMain.on('setTrayTitle', (event, title) => {
+    WindowManager.tray.setTitle(title);
+});
+
+ipcMain.on('setTrayToolTip', (event, title) => {
+    WindowManager.tray.setToolTip(title);
+});
+
+ipcMain.on('songChanged', (event, song) => {
+    WindowManager.tray.setTitle(song);
+
+    if (song.indexOf('-') > 0 && song.indexOf('Radio Ritmo Romántic') === -1) {
+        const songTitle = song.split('-')[1].trim();
+        sendToMainWindow('songChanged', song);
+    }
+});
+
 // Exit cleanly on request from parent process in development mode.
 if (config.isDev) {
     if (config.isWin) {
@@ -148,11 +165,6 @@ if (config.isDev) {
             app.quit();
         });
     }
-}
-
-function broswerWindowDomReady() {
-    logger.debug('broswerWindowDomReady');
-    // win.webContents.executeJavaScript(headerScript);
 }
 
 function mouseEnter() {
@@ -227,7 +239,7 @@ function mouseLeave() {
         return;
 
     if (WindowUtils.isMouseOverWindow()) {
-        logger.debug("Ignore mosueleave. It's wrong.");
+        logger.debug("Ignore mouseleave. It's wrong.");
         return;
     }
 

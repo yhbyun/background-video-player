@@ -266,7 +266,6 @@ export default class WindowManager {
         logger.debug('Creating tray window.');
 
         this.tray = new Tray(config.iconTray);
-        this.tray.setToolTip('Video');
 
         const contextMenu = getTrayMenu(status.services);
         this.tray.setContextMenu(contextMenu);

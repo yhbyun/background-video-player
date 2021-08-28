@@ -8,6 +8,7 @@ module.exports = {
                 // preload: 'src/preload.js',
                 // 'client-header': 'src/client-header.js',
                 'webview-inject': 'public/webview-inject.js',
+                'ritmo-inject': 'public/ritmo-inject.js',
             },
             nodeIntegration: true,
             // List native deps here if they don't work
