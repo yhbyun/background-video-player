@@ -1,5 +1,5 @@
 <template>
-    <div class="w-screen h-screen">
+    <div id="app">
         <transition>
             <router-view></router-view>
         </transition>
