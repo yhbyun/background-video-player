@@ -1,39 +1,39 @@
 import fetch from 'node-fetch';
 import cheerio from 'cheerio';
 
-export const getLyric = async (song) => {
-    console.log('getLyrics', song);
-    let query = song + ' site:https://www.letras.com';
-    let url = 'https://www.google.com/search?q=' + encodeURIComponent(query);
-    let lyricUrl;
+export const getLyric = async (artist, title) => {
+    console.log('getLyrics', artist, title);
 
-    // Cannot parse google search result page using cheerio. Don't know why???
-    fetch(url)
-        .then((res) => res.text())
-        .then((html) => {
-            let start = html.indexOf('<a href="/url?q=');
-            if (start > 0) {
-                let end = html.indexOf('&amp;', start + 9);
-                lyricUrl = html.substring(start + 16, end - 1);
-                console.log('lyric ur', lyricUrl);
-            }
+    title = title.replace(/ *\([^)]*\) */g, '');
 
-            if (!lyricUrl) {
-                throw Error('Lyrics not found');
-            }
+    const url =
+        'https://search.azlyrics.com/search.php?q=' +
+        encodeURIComponent(title + ' ' + artist);
 
-            return fetch(lyricUrl);
-        })
-        .then((res) => res.text())
-        .then((html) => {
+    return (async () => {
+        try {
+            let response = await fetch(url);
+            let html = await response.text();
+
             let $ = cheerio.load(html);
-            const data = $('.cnt-letra');
+            let elem = $(
+                '.col-xs-12.col-sm-10.col-sm-offset-1.col-md-8.col-md-offset-2.text-center table .text-left a'
+            )[0];
+            if (!elem) return;
 
-            let lyricHtml = data.html();
-            if (!lyricHtml) {
-                throw Error('Lyrics div not found');
-            }
-            lyricHtml = `<div class="text-blue-500 font-bold mb-4">${song}</div>${lyricHtml}`;
-            return lyricHtml;
-        });
+            const lyricUrl = $(elem).attr('href');
+            console.log('lyric url', lyricUrl);
+            response = await fetch(lyricUrl);
+            html = await response.text();
+
+            $ = cheerio.load(html);
+            elem = $('.col-xs-12.col-lg-8.text-center div:not([class])')[0];
+            if (!elem) return;
+
+            console.log('Found lyric');
+            return $(elem).html();
+        } catch (error) {
+            console.log(error);
+        }
+    })();
 };

@@ -36,8 +36,27 @@
                     :preload="preloadRitmo"
                 />
             </div>
-            <div class="w-full h-1/2 flex justify-center items-center bg-black">
-                <div id="english-song-title" class="text-white"></div>
+            <div
+                class="
+                    py-2
+                    w-full
+                    h-1/2
+                    bg-black
+                    text-gray-300 text-center text-sm
+                    font-thin
+                "
+            >
+                <div
+                    id="song-title"
+                    class="font-medium text-blue-500"
+                    v-html="songTitle"
+                />
+                <div
+                    id="english-song-title"
+                    class="text-yellow-500"
+                    v-html="enSongTitle"
+                ></div>
+                <div id="artist" class="text-blue-500" v-html="artist"></div>
                 <div class="lyric-wrapper w-full h-full p-4 overflow-auto">
                     <loading
                         :active.sync="isLyricLoading"
@@ -45,7 +64,7 @@
                         :is-full-page="false"
                         color="#820263"
                     ></loading>
-                    <div v-html="lyric"></div>
+                    <div class="text-white" v-html="lyric"></div>
                 </div>
             </div>
         </div>
@@ -106,7 +125,9 @@ export default {
             isLoading: false,
             preload: 'file://' + path.join(__static, 'webview-inject.js'),
             preloadRitmo: 'file://' + path.join(__static, 'ritmo-inject.js'),
-            song: '', // singer + ' - ' + song,
+            songTitle: '',
+            enSongTitle: '',
+            artist: '',
             lyric: '',
             isLyricLoading: false,
         };
@@ -279,27 +300,23 @@ export default {
 
         // song string format: singer - song title
         ipcRenderer.on('songChanged', async (e, song) => {
-            this.song = song;
-
-            const songTitle = this.song.split('-')[1].trim();
-            const result = await getTranslation(songTitle, {
-                from: 'es',
-                to: 'en',
-            });
+            this.songTitle = song.title;
+            this.artist = song.artist;
+            this.enSongTitle = '';
+            this.lyric = '';
 
             try {
-                console.log('result', result);
-                const title = result.translation[0][5][0][0];
-
-                const titleElem = document.querySelector('#english-song-title');
-                titleElem.innerHTML = title;
-
-                ipcRenderer.send('setTrayToolTop', title);
+                const result = await getTranslation(this.songTitle, {
+                    from: 'es',
+                    to: 'en',
+                });
+                this.enSongTitle = result.translation[0][5][0][0];
+                ipcRenderer.send('setTrayToolTip', this.enSongTitle);
             } catch (e) {
                 console.error(e);
             }
 
-            this.displayLyric();
+            await this.displayLyric();
         });
 
         ipcRenderer.send('ipcRendererReady', 'true');
@@ -370,22 +387,24 @@ export default {
         pauseRitmo() {
             this.$refs.wvRitmo.send('pause');
         },
-        displayLyric() {
-            if (!this.song) return;
+        async displayLyric() {
+            if (!this.songTitle) return;
+
+            // not artist info
+            // Sáb. -  10:00 am - 01:00 pm
+            if (
+                this.artist.includes(' am') &&
+                this.artist.includes(' pm') &&
+                this.artist.split(' - ').length === 3
+            ) {
+                return;
+            }
 
             this.isLyricLoading = true;
-
-            getLyric(this.song)
-                .then((lyric) => {
-                    this.lyric = lyric;
-                    document.querySelector('.lyric-wrapper').scrollTop = 0;
-                })
-                .catch((error) => {
-                    this.lyric = `<div class="text-red-500">${error}</div>`;
-                })
-                .finally(() => {
-                    this.isLyricLoading = false;
-                });
+            const lyric = await getLyric(this.artist, this.songTitle);
+            this.lyric = lyric;
+            document.querySelector('.lyric-wrapper').scrollTop = 0;
+            this.isLyricLoading = false;
         },
     },
 };

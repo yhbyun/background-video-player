@@ -58,18 +58,20 @@ onload = () => {
     );
 };
 
-const songMessage = function (song, singer) {
-    return song + ' - ' + singer;
+const songMessage = function (artist, title) {
+    return {
+        artist,
+        title,
+    };
 };
 
 const notifySongChanged = function (msg) {
-    if (msg !== ' - ') {
-        ipcRenderer.send('songChanged', msg);
-    }
+    ipcRenderer.send('songChanged', msg);
 };
 
 ipcRenderer.on('play', () => {
     document.querySelector('#playButton').click();
+    // document.querySelector('button.close').click();
 });
 
 ipcRenderer.on('pause', () => {
