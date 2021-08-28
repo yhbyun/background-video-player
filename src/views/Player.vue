@@ -1,5 +1,5 @@
 <template>
-    <div class="w-full h-full">
+    <div>
         <div
             id="video-container"
             ref="videoContainer"
@@ -16,56 +16,88 @@
         <webview
             id="wv-browser"
             ref="wvBrowser"
-            class="w-full h-full"
+            class="w-full h-full min-h-screen"
             :src="webviewUrl"
             :preload="preload"
             v-show="mode === 'browser'"
         />
         <div
-            class="flex flex-wrap w-full h-full"
+            class="flex flex-wrap w-full h-screen"
             v-show="mode === 'ritmo'"
             @mouseenter="mouseEnter"
             @mouseleave="mouseLeave"
         >
-            <div class="w-full h-1/2">
+            <button
+                class="
+                    absolute
+                    bg-green-500
+                    hover:bg-green-700
+                    text-white
+                    font-medium
+                    py-2
+                    px-4
+                    rounded-full
+                "
+                style="top: 40px; right: 10px"
+                @click="showRitmoWV = !showRitmoWV"
+            >
+                {{ showRitmoWV ? 'Close' : 'Restore' }}
+            </button>
+            <div
+                class="w-full"
+                :class="{ 'h-1/2': showRitmoWV, 'h-0': !showRitmoWV }"
+            >
                 <webview
                     id="wv-ritmo"
                     ref="wvRitmo"
                     class="w-full h-full"
                     src="https://ritmoromantica.pe/radioenvivo"
                     :preload="preloadRitmo"
+                    v-show="showRitmoWV"
                 />
             </div>
             <div
                 class="
-                    py-2
+                    p-4
                     w-full
-                    h-1/2
-                    bg-black
+                    bg-black bg-opacity-75
                     text-gray-300 text-center text-sm
                     font-thin
+                    overflow-auto
                 "
+                :class="{ 'h-1/2': showRitmoWV, 'h-full': !showRitmoWV }"
             >
-                <div
-                    id="song-title"
-                    class="font-medium text-blue-500"
-                    v-html="songTitle"
-                />
-                <div
-                    id="english-song-title"
-                    class="text-yellow-500"
-                    v-html="enSongTitle"
-                ></div>
-                <div id="artist" class="text-blue-500" v-html="artist"></div>
-                <div class="lyric-wrapper w-full h-full p-4 overflow-auto">
-                    <loading
-                        :active.sync="isLyricLoading"
-                        :can-cancel="false"
-                        :is-full-page="false"
-                        color="#820263"
-                    ></loading>
-                    <div class="text-white" v-html="lyric"></div>
+                <div class="font-medium text-green-400">
+                    <div v-html="songTitle" />
+                    <div v-if="enSongTitle">
+                        <span
+                            class="
+                                text-xs
+                                font-semibold
+                                inline-block
+                                py-1
+                                px-2
+                                uppercase
+                                rounded
+                                text-green-800
+                                bg-green-400
+                                last:mr-0
+                                mr-1
+                            "
+                        >
+                            english
+                        </span>
+                        {{ enSongTitle }}
+                    </div>
+                    <div class="font-thin" v-html="artist" />
                 </div>
+                <div class="lyric p-4 overscroll-auto" v-html="lyric"></div>
+                <loading
+                    :active.sync="isLyricLoading"
+                    :can-cancel="false"
+                    :is-full-page="false"
+                    color="#820263"
+                ></loading>
             </div>
         </div>
         <div class="loader" v-show="isLoading">
@@ -130,6 +162,7 @@ export default {
             artist: '',
             lyric: '',
             isLyricLoading: false,
+            showRitmoWV: true,
         };
     },
     computed: {
@@ -403,7 +436,7 @@ export default {
             this.isLyricLoading = true;
             const lyric = await getLyric(this.artist, this.songTitle);
             this.lyric = lyric;
-            document.querySelector('.lyric-wrapper').scrollTop = 0;
+            document.querySelector('.lyric').scrollTop = 0;
             this.isLyricLoading = false;
         },
     },
