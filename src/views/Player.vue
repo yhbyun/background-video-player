@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="w-full h-full">
         <div
             id="video-container"
             ref="videoContainer"
@@ -16,11 +16,39 @@
         <webview
             id="wv-browser"
             ref="wvBrowser"
-            class="w-screen h-screen"
+            class="w-full h-full"
             :src="webviewUrl"
             :preload="preload"
             v-show="mode === 'browser'"
         />
+        <div
+            class="flex flex-wrap w-full h-full"
+            v-show="mode === 'ritmo'"
+            @mouseenter="mouseEnter"
+            @mouseleave="mouseLeave"
+        >
+            <div class="w-full h-1/2">
+                <webview
+                    id="wv-ritmo"
+                    ref="wvRitmo"
+                    class="w-full h-full"
+                    src="https://ritmoromantica.pe/radioenvivo"
+                    :preload="preloadRitmo"
+                />
+            </div>
+            <div class="w-full h-1/2 flex justify-center items-center bg-black">
+                <div id="english-song-title" class="text-white"></div>
+                <div class="lyric-wrapper w-full h-full p-4 overflow-auto">
+                    <loading
+                        :active.sync="isLyricLoading"
+                        :can-cancel="false"
+                        :is-full-page="false"
+                        color="#820263"
+                    ></loading>
+                    <div v-html="lyric"></div>
+                </div>
+            </div>
+        </div>
         <div class="loader" v-show="isLoading">
             <div class="ripple" ref="ripple" />
             <img ref="loaderImage" />
@@ -38,11 +66,16 @@ import path from 'path';
 import VideoPlayer from '@/components/VideoPlayer.vue';
 import '../videojs-custom-theme.css';
 import EventBus from '../EventBus';
+import { getTranslation } from '@/services/translate';
+import { getLyric } from '@/services/lyric';
+import Loading from 'vue-loading-overlay';
+import 'vue-loading-overlay/dist/vue-loading.css';
 
 export default {
     name: 'player',
     components: {
         VideoPlayer,
+        Loading,
     },
     props: {
         useSampleVideo: {
@@ -72,6 +105,10 @@ export default {
             webviewUrl: '',
             isLoading: false,
             preload: 'file://' + path.join(__static, 'webview-inject.js'),
+            preloadRitmo: 'file://' + path.join(__static, 'ritmo-inject.js'),
+            song: '', // singer + ' - ' + song,
+            lyric: '',
+            isLyricLoading: false,
         };
     },
     computed: {
@@ -90,6 +127,22 @@ export default {
             ) {
                 this.$refs.wvBrowser.openDevTools();
             }
+        });
+
+        this.$refs.wvRitmo.addEventListener('dom-ready', () => {
+            console.log('wvRitmo dom-ready');
+            this.isLoading = false;
+
+            if (
+                remote.process.env.NODE_ENV &&
+                remote.process.env.NODE_ENV !== 'production'
+            ) {
+                this.$refs.wvRitmo.openDevTools();
+            }
+        });
+
+        this.$refs.wvRitmo.addEventListener('did-navigate', () => {
+            console.log('wvRitmo did-navigate');
         });
 
         document.onkeydown = (event) => {
@@ -224,6 +277,31 @@ export default {
             ipcRenderer.send('toggleSidedock', enable);
         });
 
+        // song string format: singer - song title
+        ipcRenderer.on('songChanged', async (e, song) => {
+            this.song = song;
+
+            const songTitle = this.song.split('-')[1].trim();
+            const result = await getTranslation(songTitle, {
+                from: 'es',
+                to: 'en',
+            });
+
+            try {
+                console.log('result', result);
+                const title = result.translation[0][5][0][0];
+
+                const titleElem = document.querySelector('#english-song-title');
+                titleElem.innerHTML = title;
+
+                ipcRenderer.send('setTrayToolTop', title);
+            } catch (e) {
+                console.error(e);
+            }
+
+            this.displayLyric();
+        });
+
         ipcRenderer.send('ipcRendererReady', 'true');
     },
     watch: {
@@ -231,6 +309,10 @@ export default {
             handler(mode, oldMode) {
                 if (oldMode === 'video' && this.player) {
                     this.player.pause();
+                } else if (mode === 'ritmo') {
+                    this.playRitmo();
+                } else if (oldMode === 'ritmo') {
+                    this.pauseRitmo();
                 }
             },
         },
@@ -254,12 +336,22 @@ export default {
         },
         changeMode(route) {
             if (route.name === 'browser') {
-                this.mode = 'browser';
+                // this.mode = 'browser';
+                this.mode =
+                    route.service && route.service.name === 'Ritmo Romantica'
+                        ? 'ritmo'
+                        : 'browser';
                 this.webviewUrl = route.url || route.service.url;
                 console.log('Changing URL To: ' + this.webviewUrl);
 
                 ipcRenderer.send('setStatus', 'curUrl', route.url);
                 ipcRenderer.send('setStatus', 'curService', route.service);
+
+                if (route.service && route.service.name) {
+                    ipcRenderer.send('setTrayTitle', route.service.name);
+                } else {
+                    ipcRenderer.send('setTrayTitle', '');
+                }
             } else {
                 this.mode = 'video';
             }
@@ -271,6 +363,29 @@ export default {
         mouseLeave() {
             console.log('mouseLeave');
             ipcRenderer.send('mouseLeave');
+        },
+        playRitmo() {
+            this.$refs.wvRitmo.send('play');
+        },
+        pauseRitmo() {
+            this.$refs.wvRitmo.send('pause');
+        },
+        displayLyric() {
+            if (!this.song) return;
+
+            this.isLyricLoading = true;
+
+            getLyric(this.song)
+                .then((lyric) => {
+                    this.lyric = lyric;
+                    document.querySelector('.lyric-wrapper').scrollTop = 0;
+                })
+                .catch((error) => {
+                    this.lyric = `<div class="text-red-500">${error}</div>`;
+                })
+                .finally(() => {
+                    this.isLyricLoading = false;
+                });
         },
     },
 };
