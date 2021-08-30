@@ -67,8 +67,9 @@
                 "
                 :class="{ 'h-1/2': showRitmoWV, 'h-full': !showRitmoWV }"
             >
-                <div class="font-medium text-green-400">
-                    <div v-html="songTitle" />
+                <div class="text-green-400">
+                    <div class="font-medium" v-html="songTitle" />
+                    <div class="font-thin" v-html="artist" />
                     <div v-if="enSongTitle">
                         <span
                             class="
@@ -87,9 +88,10 @@
                         >
                             english
                         </span>
-                        {{ enSongTitle }}
+                        <span class="italic">
+                            {{ enSongTitle }}
+                        </span>
                     </div>
-                    <div class="font-thin" v-html="artist" />
                 </div>
                 <div class="lyric p-4 overscroll-auto" v-html="lyric"></div>
                 <loading
@@ -98,6 +100,7 @@
                     :is-full-page="false"
                     color="#820263"
                 ></loading>
+                <tooltip-translator :listenMouseMove="true" />
             </div>
         </div>
         <div class="loader" v-show="isLoading">
@@ -121,12 +124,14 @@ import { getTranslation } from '@/services/translate';
 import { getLyric } from '@/services/lyric';
 import Loading from 'vue-loading-overlay';
 import 'vue-loading-overlay/dist/vue-loading.css';
+import TooltipTranslator from '@/components/TooltipTranslator.vue';
 
 export default {
     name: 'player',
     components: {
         VideoPlayer,
         Loading,
+        TooltipTranslator,
     },
     props: {
         useSampleVideo: {
@@ -193,10 +198,6 @@ export default {
             ) {
                 this.$refs.wvRitmo.openDevTools();
             }
-        });
-
-        this.$refs.wvRitmo.addEventListener('did-navigate', () => {
-            console.log('wvRitmo did-navigate');
         });
 
         document.onkeydown = (event) => {
