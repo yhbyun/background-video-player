@@ -1,5 +1,7 @@
 import * as nodeRequest from 'request';
 import util from 'util';
+import fetch from 'node-fetch';
+import { URLSearchParams } from 'url';
 
 const request = util.promisify(nodeRequest);
 
@@ -26,6 +28,29 @@ export async function getGoogleTranslate(text, opts) {
     };
 
     return await request(options);
+}
+
+// another google translate api
+export async function getGoogleTranslate2(text, opts) {
+    // console.log(text, opts);
+    const { from, to } = opts;
+
+    const params = new URLSearchParams();
+    params.append('q', text);
+    params.append('sl', from); // source lang
+    params.append('tl', to); // target lang
+
+    const url =
+        'https://translate.googleapis.com/translate_a/t?client=dict-chrome-ex';
+    const options = {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+        },
+        body: params,
+    };
+
+    return await fetch(url, options);
 }
 
 export async function getGoogleSuggest(text, opts) {
