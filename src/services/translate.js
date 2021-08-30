@@ -1,5 +1,6 @@
 import {
     getGoogleTranslate,
+    getGoogleTranslate2,
     getGoogleSuggest,
     getGoogleVoice,
 } from './translate-api';
@@ -24,6 +25,33 @@ export const getTranslation = async (value, langs) => {
         const decode = JSON.parse(unescape(body.slice(5)));
         const data = JSON.parse(decode[0][2]);
         return mapping(data);
+    } catch (err) {
+        console.log(err);
+        return null;
+    }
+};
+
+// another google translate api
+export const getTranslation2 = async (value, langs) => {
+    try {
+        let detectedLang = '';
+        let translatedText = '';
+
+        const response = await getGoogleTranslate2(value, langs);
+        const data = await response.json();
+        if (data.sentences) {
+            data.sentences.forEach((sentences) => {
+                if (sentences.trans) {
+                    translatedText += sentences.trans;
+                }
+            });
+        }
+        detectedLang = data.src;
+
+        return {
+            lang: detectedLang,
+            translatedText: translatedText,
+        };
     } catch (err) {
         console.log(err);
         return null;
