@@ -39,6 +39,7 @@ export default class WindowManager {
                 enableRemoteModule: true,
                 webSecurity: false,
                 webviewTag: true,
+                nativeWindowOpen: false,
             },
             title: 'Background Video Player',
         });
