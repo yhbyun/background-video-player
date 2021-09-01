@@ -100,7 +100,10 @@
                     :is-full-page="false"
                     color="#820263"
                 ></loading>
-                <tooltip-translator :listenMouseMove="true" />
+                <tooltip-translator
+                    :listenMouseMove="true"
+                    :detectType="detectType"
+                />
             </div>
         </div>
         <div class="loader" v-show="isLoading">
@@ -169,6 +172,7 @@ export default {
             lyric: '',
             isLyricLoading: false,
             showRitmoWV: true,
+            detectType: 'word',
         };
     },
     computed: {
@@ -202,7 +206,7 @@ export default {
         });
 
         document.onkeydown = (event) => {
-            console.log('onkeypress', event);
+            console.log('onkeydown', event);
             if (event.code === 'Space') {
                 if (this.player) {
                     if (this.player.paused()) {
@@ -212,6 +216,17 @@ export default {
                     }
                 }
                 return false;
+            }
+
+            if (event.key === 'Meta') {
+                this.detectType = 'sentence';
+            }
+        };
+
+        document.onkeyup = (event) => {
+            console.log('onkeyup', event);
+            if (event.key === 'Meta') {
+                this.detectType = 'word';
             }
         };
 

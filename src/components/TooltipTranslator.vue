@@ -13,6 +13,10 @@ export default {
             type: Boolean,
             default: true,
         },
+        detectType: {
+            type: String,
+            default: 'word',
+        },
     },
     data() {
         return {
@@ -21,7 +25,6 @@ export default {
             mouseMoved: false,
             activatedWord: null,
             mousemoveEventListener: null,
-            detectType: 'word',
             timer: null,
             tooltip: null,
         };
@@ -149,11 +152,7 @@ export default {
             }
 
             //expand char to get word,sentence,
-            if (this.detectType === 'word') {
-                range.expand('word');
-            } else if (this.detectType === 'sentence') {
-                range.expand('sentence');
-            }
+            range.expand(this.detectType);
 
             //check mouse is actually in text bound rect
             const rect = range.getBoundingClientRect(); //mouse in word rect
