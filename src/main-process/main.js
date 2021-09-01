@@ -20,6 +20,8 @@ import { registerShortcuts, unregisterAll } from './shortcut-manager';
 
 let logger = logManager.getLogger('Main');
 
+require('@electron/remote/main').initialize();
+
 // const headerScript = fs.readFileSync(
 //     path.join(__dirname, 'client-header.js'),
 //     'utf8'

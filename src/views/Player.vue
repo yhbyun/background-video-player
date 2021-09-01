@@ -113,7 +113,8 @@
 <script>
 /* global __static */
 
-import { ipcRenderer, remote } from 'electron';
+import { ipcRenderer } from 'electron';
+import * as remote from '@electron/remote';
 import 'videojs-youtube';
 import '../StreamPlayTech';
 import path from 'path';
