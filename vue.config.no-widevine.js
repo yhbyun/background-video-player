@@ -17,9 +17,6 @@ module.exports = {
             builderOptions: {
                 productName: 'Background Video Player',
                 extraResources: ['extensions/**/*'],
-                electronDownload: {
-                    mirror: 'https://github.com/castlabs/electron-releases/releases/download/v',
-                },
             },
             chainWebpackMainProcess: (config) => {
                 // Chain webpack config for electron main process only
