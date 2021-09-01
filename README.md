@@ -5,26 +5,28 @@ Electron app to play videos in the background
 ## Project setup
 
 ```sh
-yarn install
+$ yarn install
 ```
 
 ## To start a Development Server
 
 ```sh
-yarn electron:serve
+$ yarn electron:serve
+```
+
+If `TypeError: Invalid Version: https://github.com/castlabs/electron-releases\#v13.2.1-wvvmp` error happens, the following will solve this.
+```sh
+$ vi node_modules/vue-cli-plugin-electron-builder/node_modules/semver/classes/semver.js
+
+7 class SemVer {
+8   constructor (version, options) {
+9     // add the following line
+9     return;
 ```
 
 ## To Build Your App
 
 ```sh
-yarn electron:build
-```
-## Netflix play
-
-On the development server, netflix play is not supported. To play a netflix video, you should build app through the follwing command.
-
-```sh
-$ git switch widevine
 $ yarn electron:build
 
 $ python3 -m castlabs_evs.account signup
@@ -57,7 +59,7 @@ $ python3 -m castlabs_evs.vmp sign-pkg --persistent ./dist_electron/mac-arm64
 - [ ] keyboard shortcuts
 - [X] netflix play
 
-## References
+## Credit
 
 -  https://github.com/ziyang0116/rockplayer
 
