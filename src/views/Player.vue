@@ -254,6 +254,12 @@ export default {
             }
         });
 
+        EventBus.$on('reload', () => {
+            if (this.mode === 'browser') {
+                this.$refs.wvBrowser.reload();
+            }
+        });
+
         ipcRenderer.on('play-control', (event, message) => {
             if (this.player) {
                 if (message === 'play') {

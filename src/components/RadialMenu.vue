@@ -45,7 +45,9 @@
                 </a>
             </li>
             <li>
-                <a href="#" @click="handleMenuClicked"><span></span></a>
+                <a href="#" @click="handleMenuClicked($event, 'reload')">
+                    <span><font-awesome-icon icon="redo" /></span>
+                </a>
             </li>
             <li>
                 <a href="#" @click="handleMenuClicked"><span></span></a>
@@ -100,10 +102,18 @@ export default {
 
             setTimeout(() => this.resetMenu(), 500);
 
-            if (service === 'history-back') {
-                EventBus.$emit('history-back');
-            } else {
-                EventBus.$emit('change-service', service);
+            switch (service) {
+                case 'history-back':
+                    EventBus.$emit('history-back');
+                    break;
+
+                case 'reload':
+                    EventBus.$emit('reload');
+                    break;
+
+                default:
+                    EventBus.$emit('change-service', service);
+                    break;
             }
         },
         resetMenu() {
