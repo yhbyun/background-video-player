@@ -39,6 +39,7 @@ export default {
     mounted() {
         this.tooltip = tippy(this.$refs.tooltipContainer, {
             trigger: 'manual',
+            theme: 'custom',
         });
 
         if (this.listenMouseMove) {
@@ -187,3 +188,14 @@ export default {
     },
 };
 </script>
+
+<style>
+.tippy-box[data-theme~='custom'] {
+    background-color: #10b981;
+    font-size: 16px;
+}
+
+.tippy-box[data-theme~='custom'] .tippy-arrow {
+    color: #10b981;
+}
+</style>
