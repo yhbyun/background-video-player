@@ -916,10 +916,10 @@
     ajv "^6.12.0"
     ajv-keywords "^3.4.1"
 
-"@electron/get@^1.0.1":
-  version "1.12.4"
-  resolved "https://registry.yarnpkg.com/@electron/get/-/get-1.12.4.tgz#a5971113fc1bf8fa12a8789dc20152a7359f06ab"
-  integrity sha512-6nr9DbJPUR9Xujw6zD3y+rS95TyItEVM0NVjt1EehY2vUWfIgPiIPVHxCvaTS0xr2B+DRxovYVKbuOWqC35kjg==
+"@electron/get@^1.13.0":
+  version "1.13.0"
+  resolved "https://registry.yarnpkg.com/@electron/get/-/get-1.13.0.tgz#95c6bcaff4f9a505ea46792424f451efea89228c"
+  integrity sha512-+SjZhRuRo+STTO1Fdhzqnv9D2ZhjxXP6egsJ9kiO8dtP68cDx7dFCwWi64dlMQV7sWcfW1OYCW4wviEBzmRsfQ==
   dependencies:
     debug "^4.1.1"
     env-paths "^2.2.0"
@@ -4180,11 +4180,11 @@ electron-to-chromium@^1.3.793:
   version "1.0.2"
   resolved "git+https://github.com/yhbyun/electron-tween.git#4e7729027e1e3e193af3a7073c0c2f227d51f8d1"
 
-"electron@https://github.com/castlabs/electron-releases\\#v14.0.0-wvvmp":
-  version "14.0.0-wvvmp"
-  resolved "https://github.com/castlabs/electron-releases\\#b1b853adf7f36c8f62291c9b924b18cdee624da5"
+"electron@https://github.com/castlabs/electron-releases\\#v15.0.0-wvvmp":
+  version "15.0.0-wvvmp"
+  resolved "https://github.com/castlabs/electron-releases\\#1fedb970953715a8a0c4100821e552cad7e45191"
   dependencies:
-    "@electron/get" "^1.0.1"
+    "@electron/get" "^1.13.0"
     "@types/node" "^14.6.2"
     extract-zip "^1.0.3"
 
