@@ -38,7 +38,7 @@
                     px-4
                     rounded-full
                 "
-                style="top: 40px; right: 10px"
+                style="top: 10px; right: 10px"
                 @click="showRitmoWV = !showRitmoWV"
             >
                 {{ showRitmoWV ? 'Close' : 'Restore' }}
@@ -50,7 +50,7 @@
                 <webview
                     id="wv-ritmo"
                     ref="wvRitmo"
-                    class="w-full h-full"
+                    class="w-full h-full p-4"
                     src="https://ritmoromantica.pe/radioenvivo"
                     :preload="preloadRitmo"
                     v-show="showRitmoWV"
