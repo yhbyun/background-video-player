@@ -45,7 +45,7 @@
     "@vue/cli-service": "~4.5.0",
     "autoprefixer": "^9",
     "babel-eslint": "^10.1.0",
-    "electron": "https://github.com/castlabs/electron-releases\\#v14.0.0-wvvmp",
+    "electron": "https://github.com/castlabs/electron-releases\\#v15.0.0-wvvmp",
     "electron-devtools-installer": "^3.2.0",
     "eslint": "^6.7.2",
     "eslint-config-prettier": "^8.3.0",
