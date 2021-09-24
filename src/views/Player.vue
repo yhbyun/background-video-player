@@ -3,7 +3,7 @@
         <div
             id="video-container"
             ref="videoContainer"
-            v-show="mode === 'video'"
+            v-if="mode === 'video'"
             @mouseenter="mouseEnter"
             @mouseleave="mouseLeave"
         >
@@ -19,11 +19,11 @@
             class="w-full h-full min-h-screen"
             :src="webviewUrl"
             :preload="preload"
-            v-show="mode === 'browser'"
+            v-if="mode === 'browser'"
         />
         <div
             class="flex flex-wrap w-full h-screen"
-            v-show="mode === 'ritmo'"
+            v-if="mode === 'ritmo'"
             @mouseenter="mouseEnter"
             @mouseleave="mouseLeave"
         >
@@ -181,29 +181,8 @@ export default {
         },
     },
     mounted() {
-        this.$refs.wvBrowser.addEventListener('dom-ready', () => {
-            console.log('wvBrowser dom-ready');
-            this.isLoading = false;
-
-            if (
-                remote.process.env.NODE_ENV &&
-                remote.process.env.NODE_ENV !== 'production'
-            ) {
-                this.$refs.wvBrowser.openDevTools();
-            }
-        });
-
-        this.$refs.wvRitmo.addEventListener('dom-ready', () => {
-            console.log('wvRitmo dom-ready');
-            this.isLoading = false;
-
-            if (
-                remote.process.env.NODE_ENV &&
-                remote.process.env.NODE_ENV !== 'production'
-            ) {
-                this.$refs.wvRitmo.openDevTools();
-            }
-        });
+        this.addDomReadyListener('wvBrowser');
+        this.addDomReadyListener('wvRitmo');
 
         document.onkeydown = (event) => {
             console.log('onkeydown', event);
@@ -382,11 +361,17 @@ export default {
             handler(mode, oldMode) {
                 if (oldMode === 'video' && this.player) {
                     this.player.pause();
-                } else if (mode === 'ritmo') {
-                    this.playRitmo();
                 } else if (oldMode === 'ritmo') {
                     this.pauseRitmo();
                 }
+
+                this.$nextTick(() => {
+                    if (mode === 'browser') {
+                        this.addDomReadyListener('wvBrowser');
+                    } else if (mode === 'ritmo') {
+                        this.addDomReadyListener('wvRitmo');
+                    }
+                });
             },
         },
     },
@@ -461,6 +446,24 @@ export default {
             this.lyric = lyric;
             document.querySelector('.lyric').scrollTop = 0;
             this.isLyricLoading = false;
+        },
+        addDomReadyListener(wvName) {
+            this.$refs[wvName] &&
+                this.$refs[wvName].addEventListener('dom-ready', () => {
+                    console.log(`${wvName} dom-ready`);
+                    this.isLoading = false;
+
+                    if (wvName === 'wvRitmo') {
+                        this.playRitmo();
+                    }
+
+                    if (
+                        remote.process.env.NODE_ENV &&
+                        remote.process.env.NODE_ENV !== 'production'
+                    ) {
+                        this.$refs[wvName].openDevTools();
+                    }
+                });
         },
     },
 };
