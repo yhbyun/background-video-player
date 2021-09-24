@@ -71,7 +71,13 @@ const notifySongChanged = function (msg) {
 
 ipcRenderer.on('play', () => {
     document.querySelector('#playButton').click();
-    // document.querySelector('button.close').click();
+
+    setTimeout(() => {
+        const closeButton = document.querySelector('button.close');
+        if (closeButton) {
+            closeButton.click();
+        }
+    }, 6000);
 });
 
 ipcRenderer.on('pause', () => {
