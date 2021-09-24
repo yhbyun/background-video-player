@@ -21,91 +21,12 @@
             :preload="preload"
             v-if="mode === 'browser'"
         />
-        <div
+        <ritmo-player
             class="flex flex-wrap w-full h-screen"
             v-if="mode === 'ritmo'"
             @mouseenter="mouseEnter"
             @mouseleave="mouseLeave"
-        >
-            <button
-                class="
-                    absolute
-                    bg-green-500
-                    hover:bg-green-700
-                    text-white
-                    font-medium
-                    py-2
-                    px-4
-                    rounded-full
-                "
-                style="top: 10px; right: 10px"
-                @click="showRitmoWV = !showRitmoWV"
-            >
-                {{ showRitmoWV ? 'Close' : 'Restore' }}
-            </button>
-            <div
-                class="w-full"
-                :class="{ 'h-1/2': showRitmoWV, 'h-0': !showRitmoWV }"
-            >
-                <webview
-                    id="wv-ritmo"
-                    ref="wvRitmo"
-                    class="w-full h-full p-4"
-                    src="https://ritmoromantica.pe/radioenvivo"
-                    :preload="preloadRitmo"
-                    v-show="showRitmoWV"
-                />
-            </div>
-            <div
-                class="
-                    p-4
-                    w-full
-                    bg-black bg-opacity-75
-                    text-gray-300 text-center text-sm
-                    font-thin
-                    overflow-auto
-                "
-                :class="{ 'h-1/2': showRitmoWV, 'h-full': !showRitmoWV }"
-            >
-                <div class="text-green-400">
-                    <div class="font-medium" v-html="songTitle" />
-                    <div class="font-thin" v-html="artist" />
-                    <div v-if="enSongTitle">
-                        <span
-                            class="
-                                text-xs
-                                font-semibold
-                                inline-block
-                                py-1
-                                px-2
-                                uppercase
-                                rounded
-                                text-green-800
-                                bg-green-400
-                                last:mr-0
-                                mr-1
-                            "
-                        >
-                            english
-                        </span>
-                        <span class="italic">
-                            {{ enSongTitle }}
-                        </span>
-                    </div>
-                </div>
-                <div class="lyric p-4 overscroll-auto" v-html="lyric"></div>
-                <loading
-                    :active.sync="isLyricLoading"
-                    :can-cancel="false"
-                    :is-full-page="false"
-                    color="#820263"
-                ></loading>
-                <tooltip-translator
-                    :listenMouseMove="true"
-                    :detectType="detectType"
-                />
-            </div>
-        </div>
+        />
         <div class="loader" v-show="isLoading">
             <div class="ripple" ref="ripple" />
             <img ref="loaderImage" />
@@ -122,20 +43,15 @@ import 'videojs-youtube';
 import '../StreamPlayTech';
 import path from 'path';
 import VideoPlayer from '@/components/VideoPlayer.vue';
+import RitmoPlayer from '@/components/RitmoPlayer.vue';
 import '../videojs-custom-theme.css';
 import EventBus from '../EventBus';
-import { getTranslation } from '@/services/translate';
-import { getLyric } from '@/services/lyric';
-import Loading from 'vue-loading-overlay';
-import 'vue-loading-overlay/dist/vue-loading.css';
-import TooltipTranslator from '@/components/TooltipTranslator.vue';
 
 export default {
     name: 'player',
     components: {
         VideoPlayer,
-        Loading,
-        TooltipTranslator,
+        RitmoPlayer,
     },
     props: {
         useSampleVideo: {
@@ -165,13 +81,6 @@ export default {
             webviewUrl: '',
             isLoading: false,
             preload: 'file://' + path.join(__static, 'webview-inject.js'),
-            preloadRitmo: 'file://' + path.join(__static, 'ritmo-inject.js'),
-            songTitle: '',
-            enSongTitle: '',
-            artist: '',
-            lyric: '',
-            isLyricLoading: false,
-            showRitmoWV: true,
             detectType: 'word',
         };
     },
@@ -182,7 +91,6 @@ export default {
     },
     mounted() {
         this.addDomReadyListener('wvBrowser');
-        this.addDomReadyListener('wvRitmo');
 
         document.onkeydown = (event) => {
             console.log('onkeydown', event);
@@ -195,17 +103,6 @@ export default {
                     }
                 }
                 return false;
-            }
-
-            if (event.key === 'Meta') {
-                this.detectType = 'sentence';
-            }
-        };
-
-        document.onkeyup = (event) => {
-            console.log('onkeyup', event);
-            if (event.key === 'Meta') {
-                this.detectType = 'word';
             }
         };
 
@@ -237,6 +134,10 @@ export default {
             if (this.mode === 'browser') {
                 this.$refs.wvBrowser.reload();
             }
+        });
+
+        EventBus.$on('service-loaded', () => {
+            this.isLoading = false;
         });
 
         ipcRenderer.on('play-control', (event, message) => {
@@ -333,27 +234,6 @@ export default {
             ipcRenderer.send('toggleSidedock', enable);
         });
 
-        // song string format: singer - song title
-        ipcRenderer.on('songChanged', async (e, song) => {
-            this.songTitle = song.title;
-            this.artist = song.artist;
-            this.enSongTitle = '';
-            this.lyric = '';
-
-            try {
-                const result = await getTranslation(this.songTitle, {
-                    from: 'es',
-                    to: 'en',
-                });
-                this.enSongTitle = result.translation[0][5][0][0];
-                ipcRenderer.send('setTrayToolTip', this.enSongTitle);
-            } catch (e) {
-                console.error(e);
-            }
-
-            await this.displayLyric();
-        });
-
         ipcRenderer.send('ipcRendererReady', 'true');
     },
     watch: {
@@ -361,15 +241,11 @@ export default {
             handler(mode, oldMode) {
                 if (oldMode === 'video' && this.player) {
                     this.player.pause();
-                } else if (oldMode === 'ritmo') {
-                    this.pauseRitmo();
                 }
 
                 this.$nextTick(() => {
                     if (mode === 'browser') {
                         this.addDomReadyListener('wvBrowser');
-                    } else if (mode === 'ritmo') {
-                        this.addDomReadyListener('wvRitmo');
                     }
                 });
             },
@@ -422,40 +298,11 @@ export default {
             console.log('mouseLeave');
             ipcRenderer.send('mouseLeave');
         },
-        playRitmo() {
-            this.$refs.wvRitmo.send('play');
-        },
-        pauseRitmo() {
-            this.$refs.wvRitmo.send('pause');
-        },
-        async displayLyric() {
-            if (!this.songTitle) return;
-
-            // not artist info
-            // Sáb. -  10:00 am - 01:00 pm
-            if (
-                this.artist.includes(' am') &&
-                this.artist.includes(' pm') &&
-                this.artist.split(' - ').length === 3
-            ) {
-                return;
-            }
-
-            this.isLyricLoading = true;
-            const lyric = await getLyric(this.artist, this.songTitle);
-            this.lyric = lyric;
-            document.querySelector('.lyric').scrollTop = 0;
-            this.isLyricLoading = false;
-        },
         addDomReadyListener(wvName) {
             this.$refs[wvName] &&
                 this.$refs[wvName].addEventListener('dom-ready', () => {
                     console.log(`${wvName} dom-ready`);
                     this.isLoading = false;
-
-                    if (wvName === 'wvRitmo') {
-                        this.playRitmo();
-                    }
 
                     if (
                         remote.process.env.NODE_ENV &&

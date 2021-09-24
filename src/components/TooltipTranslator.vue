@@ -9,6 +9,10 @@ import 'tippy.js/dist/tippy.css';
 
 export default {
     props: {
+        container: {
+            type: String,
+            default: 'document',
+        },
         listenMouseMove: {
             type: Boolean,
             default: true,
@@ -57,12 +61,22 @@ export default {
     },
     methods: {
         addMouseMoveListener() {
-            console.log('addMouseMoveListener');
-            document.addEventListener('mousemove', this.handleMouseMove);
+            const elem =
+                this.container === 'document'
+                    ? document
+                    : document.querySelector(this.container);
+            if (elem) {
+                elem.addEventListener('mousemove', this.handleMouseMove);
+            }
         },
         removeMouseMoveListener() {
-            console.log('removeMouseMoveListener');
-            document.removeEventListener('mousemove', this.handleMouseMove);
+            const elem =
+                this.container === 'document'
+                    ? document
+                    : document.querySelector(this.container);
+            if (elem) {
+                elem.removeEventListener('mousemove', this.handleMouseMove);
+            }
         },
         handleMouseMove({ clientX, clientY }) {
             this.mouseMoved = true;
