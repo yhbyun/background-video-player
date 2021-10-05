@@ -36,13 +36,14 @@ export default class WindowManager {
             webPreferences: {
                 nodeIntegration: true,
                 contextIsolation: false,
-                enableRemoteModule: true,
                 webSecurity: false,
                 webviewTag: true,
                 nativeWindowOpen: false,
             },
             title: 'Background Video Player',
         });
+
+        require('@electron/remote/main').enable(this.mainWindow.webContents);
 
         status.defaultUserAgent = this.mainWindow.webContents.userAgent;
     }
