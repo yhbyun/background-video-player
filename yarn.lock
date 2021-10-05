@@ -4180,9 +4180,9 @@ electron-to-chromium@^1.3.793:
   version "1.0.2"
   resolved "git+https://github.com/yhbyun/electron-tween.git#4e7729027e1e3e193af3a7073c0c2f227d51f8d1"
 
-"electron@https://github.com/castlabs/electron-releases\\#v15.0.0-wvvmp":
-  version "15.0.0-wvvmp"
-  resolved "https://github.com/castlabs/electron-releases\\#1fedb970953715a8a0c4100821e552cad7e45191"
+"electron@https://github.com/castlabs/electron-releases\\#v15.1.1-wvvmp":
+  version "15.1.1-wvvmp"
+  resolved "https://github.com/castlabs/electron-releases\\#a1c66ba74499fb179a181b846d7c1a330d043c5c"
   dependencies:
     "@electron/get" "^1.13.0"
     "@types/node" "^14.6.2"
