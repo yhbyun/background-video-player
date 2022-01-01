@@ -5,6 +5,7 @@ import {
     ipcMain,
     screen,
     session,
+    components,
 } from 'electron';
 import installExtension, { VUEJS3_DEVTOOLS } from 'electron-devtools-installer';
 import WindowManager, { sendToMainWindow } from './window-manager';
@@ -51,6 +52,10 @@ app.on('activate', () => {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on('ready', async () => {
+    // Wait for the Widevine CDM installation to complete
+    await components.whenReady();
+    console.log('components ready:', components.status());
+
     if (config.isDev && !config.isTest) {
         // Install Vue Devtools
         try {
