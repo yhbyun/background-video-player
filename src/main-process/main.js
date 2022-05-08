@@ -182,7 +182,6 @@ function mouseEnter() {
 
     if (WindowUtils.isSidedockMode()) {
         SideDock.handleMouseEnterOnSidedock();
-        return;
     }
 
     if (
@@ -235,7 +234,6 @@ function mouseLeave() {
 
     if (WindowUtils.isSidedockMode()) {
         SideDock.handleMouseLeaveOnSidedock();
-        return;
     }
 
     if (
